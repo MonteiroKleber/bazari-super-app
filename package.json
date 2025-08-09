@@ -24,11 +24,14 @@
     "@polkadot/keyring": "^12.6.2",
     "@polkadot/util": "^12.6.2",
     "@polkadot/util-crypto": "^12.6.2",
+    "clsx": "^2.1.1",
     "framer-motion": "^10.16.16",
     "ipfs-http-client": "^60.0.1",
+    "lucide-react": "^0.539.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
+    "tailwind-merge": "^3.3.1",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
