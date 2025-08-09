@@ -11,9 +11,22 @@ const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const savedTheme = localStorage.getItem('bazari_theme')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark)
+    
     setIsDark(shouldUseDark)
     document.documentElement.classList.toggle('dark', shouldUseDark)
   }, [])
+
+  const toggleTheme = () => {
+    const newTheme = !isDark
+    setIsDark(newTheme)
+    localStorage.setItem('bazari_theme', newTheme ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', newTheme)
+  }
+
+  // Expõe função de toggle via window para facilitar testes
+  useEffect(() => {
+    ;(window as any).toggleTheme = toggleTheme
+  }, [isDark])
 
   return <>{children}</>
 }
@@ -55,6 +68,16 @@ class ErrorBoundary extends React.Component<{ children: ReactNode }, ErrorBounda
             >
               Recarregar Página
             </button>
+            {process.env.NODE_ENV === 'development' && (
+              <details className='mt-4 text-left'>
+                <summary className='cursor-pointer text-sm text-gray-500 hover:text-gray-700'>
+                  Detalhes do erro (desenvolvimento)
+                </summary>
+                <pre className='mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-auto'>
+                  {this.state.error?.stack}
+                </pre>
+              </details>
+            )}
           </div>
         </div>
       )
