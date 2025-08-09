@@ -5,6 +5,7 @@ import { useTranslation } from '@app/i18n/useTranslation'
 // Páginas carregadas de forma lazy para otimização
 const HomePage = lazy(() => import('@pages/Home'))
 const NotFoundPage = lazy(() => import('@pages/NotFound'))
+const ComponentShowcase = lazy(() => import('@pages/ComponentShowcase'))
 
 /**
  * Componente de Loading para Suspense
@@ -69,6 +70,16 @@ export const AppRoutes = () => {
           element={
             <PublicRoute>
               <HomePage />
+            </PublicRoute>
+          }
+        />
+
+        {/* Showcase dos componentes */}
+        <Route
+          path='/showcase'
+          element={
+            <PublicRoute>
+              <ComponentShowcase />
             </PublicRoute>
           }
         />
