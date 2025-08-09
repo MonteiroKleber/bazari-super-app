@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react'
-import { i18nService, Language, ModuleName, TranslationKey } from './i18n'
+import { i18nService, Language, ModuleName } from './i18n'
 
 /**
- * Hook React para sistema de tradução
- * Atualiza automaticamente quando o idioma muda
+ * Hook principal para tradução
+ * Suporta módulos específicos e chaves aninhadas
  */
 export function useTranslation(defaultModule?: ModuleName) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(
-    i18nService.getCurrentLanguage()
-  )
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(i18nService.getCurrentLanguage())
 
   useEffect(() => {
     const handleLanguageChange = (event: CustomEvent<Language>) => {
       setCurrentLanguage(event.detail)
     }
 
-    // Escuta mudanças de idioma
     window.addEventListener('languageChanged', handleLanguageChange as EventListener)
 
     return () => {
@@ -24,69 +21,73 @@ export function useTranslation(defaultModule?: ModuleName) {
   }, [])
 
   /**
-   * Função de tradução principal
-   * Se defaultModule estiver definido, pode ser chamada apenas com a chave
+   * Traduz uma chave específica
+   * @param module - Módulo de tradução (opcional se defaultModule foi definido)
+   * @param key - Chave da tradução
+   * @param nestedKey - Chave aninhada (opcional)
    */
-  const translate = (
-    moduleOrKey: ModuleName | TranslationKey,
-    key?: TranslationKey
-  ): string => {
-    if (defaultModule && typeof key === 'undefined') {
-      // Caso: t('loading') com defaultModule definido
-      return i18nService.translate(defaultModule, moduleOrKey as TranslationKey)
-    }
-    
-    if (typeof key === 'string') {
-      // Caso: t('common', 'loading')
-      return i18nService.translate(moduleOrKey as ModuleName, key)
+  const translate = (module: ModuleName | string, key?: string, nestedKey?: string): string => {
+    // Se apenas um parâmetro foi passado e temos um módulo padrão
+    if (defaultModule && !key) {
+      return i18nService.translate(defaultModule, module as string)
     }
 
-    console.warn('useTranslation: parâmetros inválidos')
-    return moduleOrKey as string
+    // Se dois parâmetros foram passados e temos um módulo padrão
+    if (defaultModule && key && !nestedKey) {
+      return i18nService.translate(defaultModule, module as string, key)
+    }
+
+    // Caso normal com módulo explícito
+    if (key) {
+      return i18nService.translate(module as ModuleName, key, nestedKey)
+    }
+
+    // Fallback
+    return module as string
   }
 
   /**
-   * Função de tradução com variáveis
+   * Traduz com variáveis
    */
   const translateWithVars = (
-    moduleOrKey: ModuleName | TranslationKey,
-    keyOrVars?: TranslationKey | Record<string, string | number>,
-    variables?: Record<string, string | number>
+    module: ModuleName | string,
+    key?: string | Record<string, string | number>,
+    variables?: Record<string, string | number> | string,
+    nestedKey?: string
   ): string => {
-    if (defaultModule && typeof keyOrVars === 'object') {
-      // Caso: tVar('welcome', { name: 'João' }) com defaultModule
-      return i18nService.translateWithVars(
-        defaultModule, 
-        moduleOrKey as TranslationKey, 
-        keyOrVars
-      )
-    }
-    
-    if (typeof keyOrVars === 'string' && variables) {
-      // Caso: tVar('common', 'welcome', { name: 'João' })
-      return i18nService.translateWithVars(
-        moduleOrKey as ModuleName, 
-        keyOrVars, 
-        variables
-      )
+    // Se apenas um parâmetro foi passado e temos um módulo padrão
+    if (defaultModule && typeof key === 'object') {
+      return i18nService.translateWithVars(defaultModule, module as string, key)
     }
 
-    console.warn('useTranslation: parâmetros inválidos para translateWithVars')
-    return moduleOrKey as string
+    // Se dois parâmetros foram passados e temos um módulo padrão
+    if (defaultModule && typeof key === 'string' && typeof variables === 'object') {
+      return i18nService.translateWithVars(defaultModule, module as string, variables, key)
+    }
+
+    // Caso normal com módulo explícito
+    if (typeof key === 'string' && typeof variables === 'object') {
+      return i18nService.translateWithVars(module as ModuleName, key, variables, nestedKey)
+    }
+
+    // Fallback
+    return translate(module, key as string, variables as string)
   }
 
   /**
-   * Muda o idioma da aplicação
+   * Muda o idioma
    */
-  const changeLanguage = (language: Language): void => {
+  const changeLanguage = (language: Language) => {
     i18nService.setLanguage(language)
   }
 
   /**
-   * Obtém traduções de um módulo inteiro
+   * Obtém todas as traduções de um módulo
    */
-  const getModuleTranslations = (module: ModuleName): Record<string, string> => {
-    return i18nService.getModuleTranslations(module)
+  const getModuleTranslations = (module?: ModuleName): Record<string, string> => {
+    const targetModule = module || defaultModule
+    if (!targetModule) return {}
+    return i18nService.getModuleTranslations(targetModule)
   }
 
   /**
@@ -149,17 +150,10 @@ export function useModuleTranslation(module: ModuleName) {
  * Hooks especializados para módulos comuns
  */
 export const useCommonTranslation = () => useModuleTranslation('common')
-export const useAuthTranslation = () => useModuleTranslation('auth')
-export const useProfileTranslation = () => useModuleTranslation('profile')
-export const useMarketplaceTranslation = () => useModuleTranslation('marketplace')
-export const useBusinessTranslation = () => useModuleTranslation('business')
-export const useWalletTranslation = () => useModuleTranslation('wallet')
-export const useSocialTranslation = () => useModuleTranslation('social')
-export const useDaoTranslation = () => useModuleTranslation('dao')
-export const useDexTranslation = () => useModuleTranslation('dex')
-export const useWorkTranslation = () => useModuleTranslation('work')
-export const useSettingsTranslation = () => useModuleTranslation('settings')
+export const useHomeTranslation = () => useModuleTranslation('home')
+export const useLanguageTranslation = () => useModuleTranslation('language')
 export const useErrorsTranslation = () => useModuleTranslation('errors')
+export const useNavigationTranslation = () => useModuleTranslation('navigation')
 
 /**
  * Hook para detectar mudanças de idioma

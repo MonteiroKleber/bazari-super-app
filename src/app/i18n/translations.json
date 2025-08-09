@@ -7,7 +7,7 @@
     },
     "error": {
       "pt": "Erro",
-      "en": "Error",
+      "en": "Error", 
       "es": "Error"
     },
     "success": {
@@ -45,10 +45,10 @@
       "en": "Search",
       "es": "Buscar"
     },
-    "filter": {
-      "pt": "Filtrar",
-      "en": "Filter",
-      "es": "Filtrar"
+    "home": {
+      "pt": "Início",
+      "en": "Home",
+      "es": "Inicio"
     },
     "back": {
       "pt": "Voltar",
@@ -65,552 +65,209 @@
       "en": "Previous",
       "es": "Anterior"
     },
-    "home": {
-      "pt": "Início",
-      "en": "Home",
-      "es": "Inicio"
+    "close": {
+      "pt": "Fechar",
+      "en": "Close",
+      "es": "Cerrar"
+    },
+    "select": {
+      "pt": "Selecionar",
+      "en": "Select",
+      "es": "Seleccionar"
     }
   },
-  "auth": {
+  "home": {
+    "title": {
+      "pt": "O Futuro do",
+      "en": "The Future of",
+      "es": "El Futuro del"
+    },
+    "subtitle": {
+      "pt": "Comércio Social",
+      "en": "Social Commerce",
+      "es": "Comercio Social"
+    },
+    "description": {
+      "pt": "Marketplace descentralizado onde sua identidade é um ativo, seus negócios são tokens e sua comunidade governa o ecossistema.",
+      "en": "Decentralized marketplace where your identity is an asset, your businesses are tokens and your community governs the ecosystem.",
+      "es": "Marketplace descentralizado donde tu identidad es un activo, tus negocios son tokens y tu comunidad gobierna el ecosistema."
+    },
+    "createAccount": {
+      "pt": "Criar Conta Gratuita",
+      "en": "Create Free Account",
+      "es": "Crear Cuenta Gratis"
+    },
+    "exploreDemo": {
+      "pt": "Explorar Demo",
+      "en": "Explore Demo",
+      "es": "Explorar Demo"
+    },
     "login": {
       "pt": "Entrar",
       "en": "Login",
       "es": "Iniciar Sesión"
     },
-    "logout": {
-      "pt": "Sair",
-      "en": "Logout",
-      "es": "Cerrar Sesión"
-    },
-    "register": {
-      "pt": "Criar Conta",
-      "en": "Create Account",
-      "es": "Crear Cuenta"
-    },
-    "password": {
-      "pt": "Senha",
-      "en": "Password",
-      "es": "Contraseña"
-    },
-    "confirmPassword": {
-      "pt": "Confirmar Senha",
-      "en": "Confirm Password",
-      "es": "Confirmar Contraseña"
-    },
-    "forgotPassword": {
-      "pt": "Esqueci a Senha",
-      "en": "Forgot Password",
-      "es": "Olvidé la Contraseña"
-    },
-    "seedPhrase": {
-      "pt": "Frase de Recuperação",
-      "en": "Seed Phrase",
-      "es": "Frase de Recuperación"
-    },
-    "importAccount": {
-      "pt": "Importar Conta",
-      "en": "Import Account",
-      "es": "Importar Cuenta"
-    },
-    "createNewAccount": {
-      "pt": "Criar Nova Conta",
-      "en": "Create New Account",
-      "es": "Crear Nueva Cuenta"
-    },
-    "welcomeBack": {
-      "pt": "Bem-vindo de volta!",
-      "en": "Welcome back!",
-      "es": "¡Bienvenido de vuelta!"
-    },
-    "welcome": {
-      "pt": "Bem-vindo ao Bazari",
-      "en": "Welcome to Bazari",
-      "es": "Bienvenido a Bazari"
-    }
-  },
-  "profile": {
-    "title": {
-      "pt": "Perfil",
-      "en": "Profile",
-      "es": "Perfil"
-    },
-    "editProfile": {
-      "pt": "Editar Perfil",
-      "en": "Edit Profile",
-      "es": "Editar Perfil"
-    },
-    "name": {
-      "pt": "Nome",
-      "en": "Name",
-      "es": "Nombre"
-    },
-    "bio": {
-      "pt": "Biografia",
-      "en": "Bio",
-      "es": "Biografía"
-    },
-    "email": {
-      "pt": "E-mail",
-      "en": "Email",
-      "es": "Correo"
-    },
-    "phone": {
-      "pt": "Telefone",
-      "en": "Phone",
-      "es": "Teléfono"
-    },
-    "location": {
-      "pt": "Localização",
-      "en": "Location",
-      "es": "Ubicación"
-    },
-    "reputation": {
-      "pt": "Reputação",
-      "en": "Reputation",
-      "es": "Reputación"
-    },
-    "marketValue": {
-      "pt": "Valor de Mercado",
-      "en": "Market Value",
-      "es": "Valor de Mercado"
-    },
-    "followers": {
-      "pt": "Seguidores",
-      "en": "Followers",
-      "es": "Seguidores"
-    },
-    "following": {
-      "pt": "Seguindo",
-      "en": "Following",
-      "es": "Siguiendo"
-    },
-    "posts": {
-      "pt": "Publicações",
-      "en": "Posts",
-      "es": "Publicaciones"
-    }
-  },
-  "marketplace": {
-    "title": {
-      "pt": "Marketplace",
-      "en": "Marketplace",
-      "es": "Mercado"
-    },
-    "products": {
-      "pt": "Produtos",
-      "en": "Products",
-      "es": "Productos"
-    },
-    "services": {
-      "pt": "Serviços",
-      "en": "Services",
-      "es": "Servicios"
-    },
-    "businesses": {
-      "pt": "Estabelecimentos",
-      "en": "Businesses",
-      "es": "Establecimientos"
-    },
-    "categories": {
-      "pt": "Categorias",
-      "en": "Categories",
-      "es": "Categorías"
-    },
-    "price": {
-      "pt": "Preço",
-      "en": "Price",
-      "es": "Precio"
-    },
-    "description": {
-      "pt": "Descrição",
-      "en": "Description",
-      "es": "Descripción"
-    },
-    "addToCart": {
-      "pt": "Adicionar ao Carrinho",
-      "en": "Add to Cart",
-      "es": "Agregar al Carrito"
-    },
-    "cart": {
-      "pt": "Carrinho",
-      "en": "Cart",
-      "es": "Carrito"
-    },
-    "checkout": {
-      "pt": "Finalizar Compra",
-      "en": "Checkout",
-      "es": "Finalizar Compra"
-    },
-    "seller": {
-      "pt": "Vendedor",
-      "en": "Seller",
-      "es": "Vendedor"
-    },
-    "reviews": {
-      "pt": "Avaliações",
-      "en": "Reviews",
-      "es": "Reseñas"
-    }
-  },
-  "business": {
-    "title": {
-      "pt": "Meu Negócio",
-      "en": "My Business",
-      "es": "Mi Negocio"
-    },
-    "registerBusiness": {
-      "pt": "Cadastrar Estabelecimento",
-      "en": "Register Business",
-      "es": "Registrar Negocio"
-    },
-    "businessName": {
-      "pt": "Nome do Estabelecimento",
-      "en": "Business Name",
-      "es": "Nombre del Negocio"
-    },
-    "businessDescription": {
-      "pt": "Descrição do Negócio",
-      "en": "Business Description",
-      "es": "Descripción del Negocio"
-    },
-    "category": {
-      "pt": "Categoria",
-      "en": "Category",
-      "es": "Categoría"
-    },
-    "tokenize": {
-      "pt": "Tokenizar",
-      "en": "Tokenize",
-      "es": "Tokenizar"
-    },
-    "tokenized": {
-      "pt": "Tokenizado",
-      "en": "Tokenized",
-      "es": "Tokenizado"
-    },
-    "nftCreated": {
-      "pt": "NFT Criado",
-      "en": "NFT Created",
-      "es": "NFT Creado"
-    },
-    "manageProducts": {
-      "pt": "Gerenciar Produtos",
-      "en": "Manage Products",
-      "es": "Gestionar Productos"
-    },
-    "addProduct": {
-      "pt": "Adicionar Produto",
-      "en": "Add Product",
-      "es": "Agregar Producto"
-    }
-  },
-  "wallet": {
-    "title": {
-      "pt": "Carteira",
-      "en": "Wallet",
-      "es": "Billetera"
-    },
-    "balance": {
-      "pt": "Saldo",
-      "en": "Balance",
-      "es": "Saldo"
-    },
-    "send": {
-      "pt": "Enviar",
-      "en": "Send",
-      "es": "Enviar"
-    },
-    "receive": {
-      "pt": "Receber",
-      "en": "Receive",
-      "es": "Recibir"
-    },
-    "transactions": {
-      "pt": "Transações",
-      "en": "Transactions",
-      "es": "Transacciones"
-    },
-    "tokens": {
-      "pt": "Tokens",
-      "en": "Tokens",
-      "es": "Tokens"
-    },
-    "nfts": {
-      "pt": "NFTs",
-      "en": "NFTs",
-      "es": "NFTs"
-    },
-    "address": {
-      "pt": "Endereço",
-      "en": "Address",
-      "es": "Dirección"
-    },
-    "amount": {
-      "pt": "Valor",
-      "en": "Amount",
-      "es": "Cantidad"
-    },
-    "recipient": {
-      "pt": "Destinatário",
-      "en": "Recipient",
-      "es": "Destinatario"
-    }
-  },
-  "social": {
-    "feed": {
-      "pt": "Feed",
-      "en": "Feed",
-      "es": "Feed"
-    },
-    "post": {
-      "pt": "Publicar",
-      "en": "Post",
-      "es": "Publicar"
-    },
-    "newPost": {
-      "pt": "Nova Publicação",
-      "en": "New Post",
-      "es": "Nueva Publicación"
-    },
-    "like": {
-      "pt": "Curtir",
-      "en": "Like",
-      "es": "Me Gusta"
-    },
-    "comment": {
-      "pt": "Comentar",
-      "en": "Comment",
-      "es": "Comentar"
-    },
-    "share": {
-      "pt": "Compartilhar",
-      "en": "Share",
-      "es": "Compartir"
-    },
-    "follow": {
-      "pt": "Seguir",
-      "en": "Follow",
-      "es": "Seguir"
-    },
-    "unfollow": {
-      "pt": "Deixar de Seguir",
-      "en": "Unfollow",
-      "es": "Dejar de Seguir"
-    },
-    "likes": {
-      "pt": "curtidas",
-      "en": "likes",
-      "es": "me gustas"
-    },
-    "comments": {
-      "pt": "comentários",
-      "en": "comments",
-      "es": "comentarios"
-    }
-  },
-  "dao": {
-    "title": {
-      "pt": "Governança DAO",
-      "en": "DAO Governance",
-      "es": "Gobernanza DAO"
-    },
-    "proposals": {
-      "pt": "Propostas",
-      "en": "Proposals",
-      "es": "Propuestas"
-    },
-    "createProposal": {
-      "pt": "Criar Proposta",
-      "en": "Create Proposal",
-      "es": "Crear Propuesta"
-    },
-    "vote": {
-      "pt": "Votar",
-      "en": "Vote",
-      "es": "Votar"
-    },
-    "votingPower": {
-      "pt": "Poder de Voto",
-      "en": "Voting Power",
-      "es": "Poder de Voto"
-    },
-    "active": {
-      "pt": "Ativo",
-      "en": "Active",
-      "es": "Activo"
-    },
-    "closed": {
-      "pt": "Encerrado",
-      "en": "Closed",
-      "es": "Cerrado"
-    },
-    "approved": {
-      "pt": "Aprovado",
-      "en": "Approved",
-      "es": "Aprobado"
-    },
-    "rejected": {
-      "pt": "Rejeitado",
-      "en": "Rejected",
-      "es": "Rechazado"
-    }
-  },
-  "dex": {
-    "title": {
-      "pt": "Exchange",
-      "en": "Exchange",
-      "es": "Intercambio"
-    },
-    "swap": {
-      "pt": "Trocar",
-      "en": "Swap",
-      "es": "Intercambiar"
-    },
-    "from": {
-      "pt": "De",
-      "en": "From",
-      "es": "De"
-    },
-    "to": {
-      "pt": "Para",
-      "en": "To",
-      "es": "Para"
-    },
-    "rate": {
-      "pt": "Taxa",
-      "en": "Rate",
-      "es": "Tasa"
-    },
-    "slippage": {
-      "pt": "Deslizamento",
-      "en": "Slippage",
-      "es": "Deslizamiento"
-    },
-    "liquidity": {
-      "pt": "Liquidez",
-      "en": "Liquidity",
-      "es": "Liquidez"
-    },
-    "ranking": {
-      "pt": "Ranking",
-      "en": "Ranking",
-      "es": "Ranking"
-    }
-  },
-  "work": {
-    "title": {
-      "pt": "Trabalho",
-      "en": "Work",
-      "es": "Trabajo"
-    },
-    "projects": {
-      "pt": "Projetos",
-      "en": "Projects",
-      "es": "Proyectos"
-    },
-    "createProject": {
-      "pt": "Criar Projeto",
-      "en": "Create Project",
-      "es": "Crear Proyecto"
-    },
-    "apply": {
-      "pt": "Candidatar-se",
-      "en": "Apply",
-      "es": "Postularse"
-    },
-    "freelancers": {
-      "pt": "Freelancers",
-      "en": "Freelancers",
-      "es": "Freelancers"
-    },
-    "budget": {
-      "pt": "Orçamento",
-      "en": "Budget",
-      "es": "Presupuesto"
-    },
-    "deadline": {
-      "pt": "Prazo",
-      "en": "Deadline",
-      "es": "Fecha Límite"
-    },
-    "skills": {
-      "pt": "Habilidades",
-      "en": "Skills",
-      "es": "Habilidades"
-    },
-    "delivery": {
-      "pt": "Entrega",
-      "en": "Delivery",
-      "es": "Entrega"
-    }
-  },
-  "settings": {
-    "title": {
-      "pt": "Configurações",
-      "en": "Settings",
-      "es": "Configuraciones"
-    },
-    "language": {
-      "pt": "Idioma",
-      "en": "Language",
-      "es": "Idioma"
-    },
-    "theme": {
-      "pt": "Tema",
-      "en": "Theme",
-      "es": "Tema"
-    },
-    "notifications": {
-      "pt": "Notificações",
-      "en": "Notifications",
-      "es": "Notificaciones"
-    },
-    "privacy": {
-      "pt": "Privacidade",
-      "en": "Privacy",
-      "es": "Privacidad"
-    },
-    "security": {
-      "pt": "Segurança",
-      "en": "Security",
-      "es": "Seguridad"
+    "getStarted": {
+      "pt": "Começar",
+      "en": "Get Started",
+      "es": "Comenzar"
+    },
+    "features": {
+      "pt": "Recursos",
+      "en": "Features",
+      "es": "Características"
     },
     "about": {
       "pt": "Sobre",
       "en": "About",
       "es": "Acerca de"
+    },
+    "roadmap": {
+      "pt": "Roadmap",
+      "en": "Roadmap",
+      "es": "Hoja de Ruta"
+    },
+    "stats": {
+      "decentralized": {
+        "pt": "Descentralizado",
+        "en": "Decentralized",
+        "es": "Descentralizado"
+      },
+      "platformFees": {
+        "pt": "Taxas de Plataforma",
+        "en": "Platform Fees",
+        "es": "Tarifas de Plataforma"
+      },
+      "possibilities": {
+        "pt": "Possibilidades",
+        "en": "Possibilities",
+        "es": "Posibilidades"
+      }
+    }
+  },
+  "language": {
+    "selector": {
+      "title": {
+        "pt": "Selecionar Idioma",
+        "en": "Select Language",
+        "es": "Seleccionar Idioma"
+      },
+      "chooseLanguage": {
+        "pt": "Escolha seu idioma",
+        "en": "Choose your language",
+        "es": "Elige tu idioma"
+      },
+      "deviceLanguage": {
+        "pt": "Idioma do Dispositivo",
+        "en": "Device Language",
+        "es": "Idioma del Dispositivo"
+      },
+      "autoDetected": {
+        "pt": "Detectado automaticamente",
+        "en": "Auto detected",
+        "es": "Detectado automáticamente"
+      },
+      "continue": {
+        "pt": "Continuar",
+        "en": "Continue",
+        "es": "Continuar"
+      }
+    },
+    "names": {
+      "pt": {
+        "pt": "Português",
+        "en": "Portuguese",
+        "es": "Portugués"
+      },
+      "en": {
+        "pt": "Inglês",
+        "en": "English",
+        "es": "Inglés"
+      },
+      "es": {
+        "pt": "Espanhol",
+        "en": "Spanish",
+        "es": "Español"
+      }
     }
   },
   "errors": {
-    "networkError": {
-      "pt": "Erro de conexão",
-      "en": "Network error",
-      "es": "Error de conexión"
+    "pageNotFound": {
+      "pt": "Página não encontrada",
+      "en": "Page not found",
+      "es": "Página no encontrada"
     },
-    "invalidData": {
-      "pt": "Dados inválidos",
-      "en": "Invalid data",
-      "es": "Datos inválidos"
+    "pageNotFoundDescription": {
+      "pt": "A página que você está procurando não existe ou foi movida. Verifique o endereço e tente novamente.",
+      "en": "The page you are looking for does not exist or has been moved. Check the address and try again.",
+      "es": "La página que buscas no existe o ha sido movida. Verifica la dirección e inténtalo de nuevo."
     },
-    "unauthorized": {
-      "pt": "Não autorizado",
-      "en": "Unauthorized",
-      "es": "No autorizado"
+    "goHome": {
+      "pt": "Voltar ao Início",
+      "en": "Go to Home",
+      "es": "Volver al Inicio"
     },
-    "notFound": {
-      "pt": "Não encontrado",
-      "en": "Not found",
-      "es": "No encontrado"
+    "previousPage": {
+      "pt": "Página Anterior",
+      "en": "Previous Page",
+      "es": "Página Anterior"
     },
-    "serverError": {
-      "pt": "Erro do servidor",
-      "en": "Server error",
-      "es": "Error del servidor"
+    "usefulLinks": {
+      "pt": "Links úteis:",
+      "en": "Useful links:",
+      "es": "Enlaces útiles:"
     },
-    "tryAgain": {
-      "pt": "Tente novamente",
-      "en": "Try again",
-      "es": "Inténtalo de nuevo"
+    "unexpectedError": {
+      "pt": "Oops! Algo deu errado",
+      "en": "Oops! Something went wrong",
+      "es": "¡Ups! Algo salió mal"
+    },
+    "unexpectedErrorDescription": {
+      "pt": "Ocorreu um erro inesperado. Tente recarregar a página.",
+      "en": "An unexpected error occurred. Try reloading the page.",
+      "es": "Ocurrió un error inesperado. Intenta recargar la página."
+    },
+    "reloadPage": {
+      "pt": "Recarregar Página",
+      "en": "Reload Page",
+      "es": "Recargar Página"
+    },
+    "errorDetails": {
+      "pt": "Detalhes do erro (desenvolvimento)",
+      "en": "Error details (development)",
+      "es": "Detalles del error (desarrollo)"
+    }
+  },
+  "navigation": {
+    "marketplace": {
+      "pt": "Marketplace",
+      "en": "Marketplace",
+      "es": "Marketplace"
+    },
+    "profile": {
+      "pt": "Perfil",
+      "en": "Profile",
+      "es": "Perfil"
+    },
+    "wallet": {
+      "pt": "Carteira",
+      "en": "Wallet",
+      "es": "Billetera"
+    },
+    "dao": {
+      "pt": "Governança",
+      "en": "Governance",
+      "es": "Gobernanza"
+    },
+    "social": {
+      "pt": "Social",
+      "en": "Social",
+      "es": "Social"
+    },
+    "work": {
+      "pt": "Trabalho",
+      "en": "Work",
+      "es": "Trabajo"
     }
   }
 }

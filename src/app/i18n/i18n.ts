@@ -37,6 +37,8 @@ class I18nService {
    * Detecta idioma do dispositivo
    */
   private detectDeviceLanguage(): Language | null {
+    if (typeof navigator === 'undefined') return null
+    
     const browserLanguage = navigator.language || navigator.languages?.[0]
     
     if (!browserLanguage) return null
@@ -69,6 +71,8 @@ class I18nService {
    * Obtém idioma salvo no localStorage
    */
   private getSavedLanguage(): Language | null {
+    if (typeof localStorage === 'undefined') return null
+    
     try {
       const saved = localStorage.getItem(this.storageKey) as Language
       return this.isValidLanguage(saved) ? saved : null
@@ -81,6 +85,8 @@ class I18nService {
    * Salva idioma no localStorage
    */
   private saveLanguage(language: Language): void {
+    if (typeof localStorage === 'undefined') return
+    
     try {
       localStorage.setItem(this.storageKey, language)
     } catch (error) {
@@ -115,24 +121,32 @@ class I18nService {
     this.saveLanguage(language)
     
     // Dispara evento personalizado para componentes React
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: language }))
+    }
   }
 
   /**
-   * Traduz uma chave específica
+   * Traduz uma chave específica com suporte a chaves aninhadas
    */
-  translate(module: ModuleName, key: TranslationKey): string {
+  translate(module: ModuleName, key: TranslationKey, nestedKey?: string): string {
     try {
       const moduleTranslations = translations[module]
       if (!moduleTranslations) {
         console.warn(`Módulo de tradução não encontrado: ${module}`)
-        return key
+        return nestedKey || key
       }
 
-      const translationValue = moduleTranslations[key] as TranslationValue
-      if (!translationValue) {
-        console.warn(`Chave de tradução não encontrada: ${module}.${key}`)
-        return key
+      let translationValue: any = moduleTranslations[key]
+      
+      // Se há uma chave aninhada, navega mais profundo
+      if (nestedKey && translationValue && typeof translationValue === 'object') {
+        translationValue = translationValue[nestedKey]
+      }
+
+      if (!translationValue || typeof translationValue !== 'object') {
+        console.warn(`Chave de tradução não encontrada: ${module}.${key}${nestedKey ? '.' + nestedKey : ''}`)
+        return nestedKey || key
       }
 
       const translation = translationValue[this.currentLanguage]
@@ -144,14 +158,14 @@ class I18nService {
           return fallbackTranslation
         }
         
-        console.warn(`Tradução não encontrada para: ${module}.${key}`)
-        return key
+        console.warn(`Tradução não encontrada para: ${module}.${key}${nestedKey ? '.' + nestedKey : ''}`)
+        return nestedKey || key
       }
 
       return translation
     } catch (error) {
       console.error('Erro ao traduzir:', error)
-      return key
+      return nestedKey || key
     }
   }
 
@@ -163,9 +177,10 @@ class I18nService {
   translateWithVars(
     module: ModuleName, 
     key: TranslationKey, 
-    variables: Record<string, string | number> = {}
+    variables: Record<string, string | number> = {},
+    nestedKey?: string
   ): string {
-    let translation = this.translate(module, key)
+    let translation = this.translate(module, key, nestedKey)
     
     // Substitui variáveis no formato {{variableName}}
     Object.entries(variables).forEach(([varName, value]) => {
@@ -186,7 +201,12 @@ class I18nService {
     const result: Record<string, string> = {}
     
     Object.entries(moduleTranslations).forEach(([key, value]) => {
-      result[key] = this.translate(module, key)
+      if (typeof value === 'object' && value !== null) {
+        const translation = (value as TranslationValue)[this.currentLanguage]
+        if (translation) {
+          result[key] = translation
+        }
+      }
     })
 
     return result
@@ -213,7 +233,11 @@ class I18nService {
       'es': 'es-ES',
     }
 
-    return new Intl.NumberFormat(localeMap[this.currentLanguage], options).format(number)
+    try {
+      return new Intl.NumberFormat(localeMap[this.currentLanguage], options).format(number)
+    } catch {
+      return number.toString()
+    }
   }
 
   /**
@@ -226,55 +250,49 @@ class I18nService {
       'es': 'es-ES',
     }
 
-    return new Intl.DateTimeFormat(localeMap[this.currentLanguage], options).format(date)
+    try {
+      return new Intl.DateTimeFormat(localeMap[this.currentLanguage], options).format(date)
+    } catch {
+      return date.toLocaleDateString()
+    }
   }
 
   /**
    * Função utilitária para formatação de moeda
    */
-  formatCurrency(amount: number, currency: string = 'BZR'): string {
-    // Para BZR (token customizado), formatamos manualmente
-    if (currency === 'BZR') {
-      const formatted = this.formatNumber(amount, { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 6 
-      })
-      return `${formatted} BZR`
+  formatCurrency(amount: number, currency?: string): string {
+    const currencyMap: Record<Language, string> = {
+      'pt': 'BRL',
+      'en': 'USD',
+      'es': 'EUR',
     }
 
-    // Para outras moedas, usa Intl.NumberFormat padrão
     const localeMap: Record<Language, string> = {
       'pt': 'pt-BR',
       'en': 'en-US',
       'es': 'es-ES',
     }
 
-    return new Intl.NumberFormat(localeMap[this.currentLanguage], {
-      style: 'currency',
-      currency,
-    }).format(amount)
+    const targetCurrency = currency || currencyMap[this.currentLanguage]
+
+    try {
+      if (targetCurrency === 'BZR') {
+        const formatted = this.formatNumber(amount, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 6,
+        })
+        return `${formatted} BZR`
+      }
+
+      return new Intl.NumberFormat(localeMap[this.currentLanguage], {
+        style: 'currency',
+        currency: targetCurrency,
+      }).format(amount)
+    } catch {
+      return `${amount} ${targetCurrency}`
+    }
   }
 }
 
-// Instância singleton
+// Instância singleton do serviço
 export const i18nService = new I18nService()
-
-// Hook personalizado para React
-export { useTranslation } from './useTranslation'
-
-// Funções utilitárias exportadas
-export const t = (module: ModuleName, key: TranslationKey) => 
-  i18nService.translate(module, key)
-
-export const tVar = (module: ModuleName, key: TranslationKey, variables?: Record<string, string | number>) => 
-  i18nService.translateWithVars(module, key, variables)
-
-export const getCurrentLanguage = () => i18nService.getCurrentLanguage()
-export const setLanguage = (language: Language) => i18nService.setLanguage(language)
-export const getAvailableLanguages = () => i18nService.getAvailableLanguages()
-export const formatNumber = (number: number, options?: Intl.NumberFormatOptions) => 
-  i18nService.formatNumber(number, options)
-export const formatDate = (date: Date, options?: Intl.DateTimeFormatOptions) => 
-  i18nService.formatDate(date, options)
-export const formatCurrency = (amount: number, currency?: string) => 
-  i18nService.formatCurrency(amount, currency)
