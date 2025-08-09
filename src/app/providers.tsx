@@ -1,0 +1,74 @@
+import React, { ReactNode, useEffect, useState } from 'react'
+
+interface AppProvidersProps {
+  children: ReactNode
+}
+
+const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('bazari_theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark)
+    setIsDark(shouldUseDark)
+    document.documentElement.classList.toggle('dark', shouldUseDark)
+  }, [])
+
+  return <>{children}</>
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+  error?: Error
+}
+
+class ErrorBoundary extends React.Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Erro capturado:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className='min-h-screen flex items-center justify-center bg-light-100 dark:bg-dark-900'>
+          <div className='max-w-md w-full mx-4 p-8 bg-white dark:bg-dark-800 rounded-xl shadow-lg text-center'>
+            <h2 className='text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2'>
+              Oops! Algo deu errado
+            </h2>
+            <p className='text-gray-600 dark:text-gray-400 mb-6'>
+              Ocorreu um erro inesperado. Tente recarregar a página.
+            </p>
+            <button
+              type='button'
+              onClick={() => window.location.reload()}
+              className='w-full bg-primary-900 hover:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200'
+            >
+              Recarregar Página
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+  return (
+    <ErrorBoundary>
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
+    </ErrorBoundary>
+  )
+}

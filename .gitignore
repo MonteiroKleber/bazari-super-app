@@ -1,9 +1,29 @@
+<<<<<<< HEAD
+=======
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production
+/dist
+/build
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+>>>>>>> 41b481c (feat: configuração inicial do projeto Bazari - ETAPA 1)
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< HEAD
 lerna-debug.log*
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
@@ -137,3 +157,27 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+=======
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vite
+.vite
+
+# Vitest
+coverage
+
+# Bazari specific
+.bazari-cache/
+ipfs-data/
+blockchain-data/
+>>>>>>> 41b481c (feat: configuração inicial do projeto Bazari - ETAPA 1)
