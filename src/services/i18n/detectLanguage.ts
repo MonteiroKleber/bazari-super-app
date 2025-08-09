@@ -24,11 +24,11 @@ export const detectLanguage = (): Language => {
     }
 
     for (const browserLang of browserLanguages) {
-      const baseLanguage = browserLang.split('-')[0]
-      const baseMatch = languageMap[baseLanguage]
-      if (baseMatch) {
-        return baseMatch
-      }
+      //const baseLanguage = browserLang.split('-')[0]
+      //const baseMatch = languageMap[baseLanguage]
+      //if (baseMatch) {
+        //return baseMatch
+      //}
     }
 
     return 'en'

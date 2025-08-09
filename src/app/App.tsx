@@ -1,7 +1,12 @@
 import { BrowserRouter } from 'react-router-dom'
+
 import { AppProviders } from './providers'
 import { AppRoutes } from './routes'
 
+/**
+ * Componente principal da aplicação Bazari
+ * Configura providers e roteamento
+ */
 const App = () => {
   return (
     <BrowserRouter>

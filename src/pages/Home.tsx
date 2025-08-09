@@ -1,6 +1,12 @@
+// src/pages/Home.tsx
+import { useCommonTranslation } from '@app/i18n/useTranslation'
+
 const Home = () => {
+  const { t } = useCommonTranslation()
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700'>
+      {/* Header */}
       <header className='relative z-10 px-4 py-6 sm:px-6 lg:px-8'>
         <div className='max-w-7xl mx-auto flex items-center justify-between'>
           <div className='flex items-center space-x-4'>
@@ -23,16 +29,23 @@ const Home = () => {
           </nav>
 
           <div className='flex space-x-4'>
-            <button className='px-6 py-2 bg-transparent border border-white text-white rounded-lg hover:bg-white hover:text-primary-900 transition-all duration-200'>
+            <button
+              type='button'
+              className='px-6 py-2 bg-transparent border border-white text-white rounded-lg hover:bg-white hover:text-primary-900 transition-all duration-200'
+            >
               Entrar
             </button>
-            <button className='px-6 py-2 bg-secondary-500 text-primary-900 rounded-lg hover:bg-secondary-400 transition-colors duration-200 font-medium'>
+            <button
+              type='button'
+              className='px-6 py-2 bg-secondary-500 text-primary-900 rounded-lg hover:bg-secondary-400 transition-colors duration-200 font-medium'
+            >
               Começar
             </button>
           </div>
         </div>
       </header>
 
+      {/* Hero Section */}
       <main className='relative z-10 px-4 py-20 sm:px-6 lg:px-8'>
         <div className='max-w-7xl mx-auto text-center'>
           <h2 className='text-5xl md:text-7xl font-bold text-white mb-6'>
@@ -46,14 +59,21 @@ const Home = () => {
           </p>
 
           <div className='flex flex-col sm:flex-row gap-4 justify-center items-center mb-16'>
-            <button className='w-full sm:w-auto px-8 py-4 bg-secondary-500 text-primary-900 rounded-xl hover:bg-secondary-400 transition-colors duration-200 font-semibold text-lg'>
+            <button
+              type='button'
+              className='w-full sm:w-auto px-8 py-4 bg-secondary-500 text-primary-900 rounded-xl hover:bg-secondary-400 transition-colors duration-200 font-semibold text-lg'
+            >
               Criar Conta Gratuita
             </button>
-            <button className='w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white hover:text-primary-900 transition-all duration-200 font-semibold text-lg'>
+            <button
+              type='button'
+              className='w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white hover:text-primary-900 transition-all duration-200 font-semibold text-lg'
+            >
               Explorar Demo
             </button>
           </div>
 
+          {/* Stats */}
           <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto'>
             <div className='text-center'>
               <div className='text-3xl font-bold text-secondary-400 mb-2'>100%</div>
@@ -71,6 +91,7 @@ const Home = () => {
         </div>
       </main>
 
+      {/* Background decorativo */}
       <div className='absolute inset-0 overflow-hidden pointer-events-none'>
         <div className='absolute -top-40 -right-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl' />
         <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl' />

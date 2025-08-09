@@ -5,10 +5,14 @@
   },
   "extends": [
     "eslint:recommended",
+    "airbnb",
+    "airbnb-typescript",
     "@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",
@@ -25,9 +29,12 @@
     "react-hooks",
     "react-refresh",
     "@typescript-eslint",
-    "jsx-a11y"
+    "jsx-a11y",
+    "import",
+    "prettier"
   ],
   "rules": {
+    // React específico
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
     "react/jsx-props-no-spreading": ["error", {
@@ -35,18 +42,114 @@
       "custom": "ignore",
       "explicitSpread": "ignore"
     }],
+    "react/function-component-definition": ["error", {
+      "namedComponents": "arrow-function",
+      "unnamedComponents": "arrow-function"
+    }],
     "react/require-default-props": "off",
+    "react/jsx-no-useless-fragment": ["error", { "allowExpressions": true }],
+    
+    // TypeScript específico
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    
+    // Import/Export
+    "import/prefer-default-export": "off",
+    "import/no-default-export": "off",
+    "import/order": ["error", {
+      "groups": [
+        "builtin",
+        "external",
+        "internal",
+        "parent",
+        "sibling",
+        "index"
+      ],
+      "pathGroups": [
+        {
+          "pattern": "react",
+          "group": "builtin",
+          "position": "before"
+        },
+        {
+          "pattern": "@/**",
+          "group": "internal",
+          "position": "before"
+        }
+      ],
+      "pathGroupsExcludedImportTypes": ["builtin"],
+      "newlines-between": "always",
+      "alphabetize": {
+        "order": "asc",
+        "caseInsensitive": true
+      }
+    }],
+    "import/extensions": ["error", "ignorePackages", {
+      "js": "never",
+      "jsx": "never",
+      "ts": "never",
+      "tsx": "never"
+    }],
+    
+    // Acessibilidade
+    "jsx-a11y/anchor-is-valid": ["error", {
+      "components": ["Link"],
+      "specialLink": ["to"]
+    }],
+    "jsx-a11y/label-has-associated-control": ["error", {
+      "required": {
+        "some": ["nesting", "id"]
+      }
+    }],
+    
+    // Gerais
     "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+    "no-unused-expressions": ["error", {
+      "allowShortCircuit": true,
+      "allowTernary": true
+    }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "object-shorthand": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-template": "error",
+    
+    // Prettier integration
+    "prettier/prettier": ["error", {
+      "endOfLine": "auto"
+    }],
+    
+    // React Refresh
     "react-refresh/only-export-components": ["warn", { 
       "allowConstantExport": true 
-    }]
+    }],
+    
+    // Customizações para o projeto
+    "no-param-reassign": ["error", {
+      "props": true,
+      "ignorePropertyModificationsFor": ["state", "draft"]
+    }],
+    "consistent-return": "off",
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }]
   },
   "settings": {
     "react": {
       "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      },
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
     }
   },
   "overrides": [
@@ -56,7 +159,18 @@
         "jest": true
       },
       "rules": {
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "import/no-extraneous-dependencies": ["error", {
+          "devDependencies": true
+        }]
+      }
+    },
+    {
+      "files": ["vite.config.ts", "tailwind.config.cjs", "postcss.config.cjs"],
+      "rules": {
+        "import/no-extraneous-dependencies": ["error", {
+          "devDependencies": true
+        }]
       }
     }
   ]

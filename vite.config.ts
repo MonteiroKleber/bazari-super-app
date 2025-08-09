@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -42,7 +43,7 @@ export default defineConfig({
               cacheName: 'ipfs-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 dias
               }
             }
           }
@@ -81,6 +82,7 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           web3: ['@polkadot/api', '@polkadot/extension-dapp'],
+          animations: ['framer-motion'],
           state: ['zustand']
         }
       }
