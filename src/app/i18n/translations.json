@@ -1,5 +1,27 @@
 {
   "common": {
+
+    "web3SuperApp": {
+      "pt": "Super App Web3",
+      "en": "Web3 Super App",
+      "es": "Super App Web3"
+    },
+    "allRightsReserved": {
+      "pt": "Todos os direitos reservados",
+      "en": "All rights reserved",
+      "es": "Todos los derechos reservados"
+    },
+    "address": {
+      "pt": "Endereço",
+      "en": "Address",
+      "es": "Dirección"
+    },
+    "publicKey": {
+      "pt": "Chave Pública",
+      "en": "Public Key",
+      "es": "Clave Pública"
+    },
+
     "loading": {
       "pt": "Carregando...",
       "en": "Loading...",
@@ -269,5 +291,656 @@
       "en": "Work",
       "es": "Trabajo"
     }
+  },
+  "auth": {
+    
+    "enterSeedPhrase": {
+      "pt": "Digite sua frase de recuperação",
+      "en": "Enter your seed phrase",
+      "es": "Ingresa tu frase de recuperación"
+    },
+    "seedPhraseHelpText": {
+      "pt": "Digite 12 ou 24 palavras separadas por espaços",
+      "en": "Enter 12 or 24 words separated by spaces",
+      "es": "Ingresa 12 o 24 palabras separadas por espacios"
+    },
+    "createPasswordForAccount": {
+      "pt": "Crie uma senha para esta conta",
+      "en": "Create a password for this account",
+      "es": "Crea una contraseña para esta cuenta"
+    },
+    "importingAccount": {
+      "pt": "Importando conta...",
+      "en": "Importing account...",
+      "es": "Importando cuenta..."
+    },
+    "enterSeedPhraseToRecover": {
+      "pt": "Digite sua frase de recuperação para encontrar sua conta",
+      "en": "Enter your seed phrase to find your account",
+      "es": "Ingresa tu frase de recuperación para encontrar tu cuenta"
+    },
+    "recoveryInformation": {
+      "pt": "Informações sobre Recuperação",
+      "en": "Recovery Information",
+      "es": "Información de Recuperación"
+    },
+    "recoveryInformationText": {
+      "pt": "Esta função permite verificar se sua frase de recuperação é válida e qual endereço ela gera. Para acessar sua conta, você precisará importá-la com uma nova senha.",
+      "en": "This function allows you to verify if your seed phrase is valid and which address it generates. To access your account, you'll need to import it with a new password.",
+      "es": "Esta función te permite verificar si tu frase de recuperación es válida y qué dirección genera. Para acceder a tu cuenta, necesitarás importarla con una nueva contraseña."
+    },
+    "recovering": {
+      "pt": "Recuperando...",
+      "en": "Recovering...",
+      "es": "Recuperando..."
+    },
+    "accountFoundSuccessfully": {
+      "pt": "Conta encontrada com sucesso!",
+      "en": "Account found successfully!",
+      "es": "¡Cuenta encontrada exitosamente!"
+    },
+    "recoveryNextSteps": {
+      "pt": "Para acessar esta conta, vá para 'Importar Conta' e use a mesma frase de recuperação com uma nova senha.",
+      "en": "To access this account, go to 'Import Account' and use the same seed phrase with a new password.",
+      "es": "Para acceder a esta cuenta, ve a 'Importar Cuenta' y usa la misma frase de recuperación con una nueva contraseña."
+    },
+    "proceedToImport": {
+      "pt": "Prosseguir para Importação",
+      "en": "Proceed to Import",
+      "es": "Proceder a Importar"
+    },
+    "congratulations": {
+      "pt": "Parabéns!",
+      "en": "Congratulations!",
+      "es": "¡Felicidades!"
+    },
+    "accountCreatedSuccessfully": {
+      "pt": "Sua conta foi criada com sucesso!",
+      "en": "Your account has been created successfully!",
+      "es": "¡Tu cuenta ha sido creada exitosamente!"
+    },
+    "redirectingToDashboard": {
+      "pt": "Redirecionando para o dashboard em {{seconds}} segundos...",
+      "en": "Redirecting to dashboard in {{seconds}} seconds...",
+      "es": "Redirigiendo al dashboard en {{seconds}} segundos..."
+    },
+    "accountSecurelyCreated": {
+      "pt": "Conta criada com segurança",
+      "en": "Account securely created",
+      "es": "Cuenta creada de forma segura"
+    },
+    "seedPhraseSaved": {
+      "pt": "Frase de recuperação salva",
+      "en": "Seed phrase saved",
+      "es": "Frase de recuperación guardada"
+    },
+    "readyToUse": {
+      "pt": "Pronto para usar o Bazari",
+      "en": "Ready to use Bazari",
+      "es": "Listo para usar Bazari"
+    },
+    "recoveryError": {
+      "pt": "Erro na recuperação da conta",
+      "en": "Account recovery error",
+      "es": "Error en la recuperación de cuenta"
+    }
+  },
+  "profile": {
+    "myProfile": {
+      "pt": "Meu Perfil",
+      "en": "My Profile",
+      "es": "Mi Perfil"
+    },
+    "editProfile": {
+      "pt": "Editar Perfil",
+      "en": "Edit Profile",
+      "es": "Editar Perfil"
+    },
+    "backToProfile": {
+      "pt": "Voltar ao Perfil",
+      "en": "Back to Profile",
+      "es": "Volver al Perfil"
+    },
+    "avatar": {
+      "pt": "Avatar",
+      "en": "Avatar",
+      "es": "Avatar"
+    },
+    "clickToChangeAvatar": {
+      "pt": "Clique para alterar avatar",
+      "en": "Click to change avatar",
+      "es": "Haz clic para cambiar avatar"
+    },
+    "clickToUploadAvatar": {
+      "pt": "Clique para enviar avatar",
+      "en": "Click to upload avatar",
+      "es": "Haz clic para subir avatar"
+    },
+    "avatarRequirements": {
+      "pt": "JPG, PNG ou WebP, máx. 10MB",
+      "en": "JPG, PNG or WebP, max 10MB",
+      "es": "JPG, PNG o WebP, máx. 10MB"
+    },
+    "name": {
+      "pt": "Nome",
+      "en": "Name",
+      "es": "Nombre"
+    },
+    "enterYourName": {
+      "pt": "Digite seu nome",
+      "en": "Enter your name",
+      "es": "Ingresa tu nombre"
+    },
+    "bio": {
+      "pt": "Biografia",
+      "en": "Bio",
+      "es": "Biografía"
+    },
+    "tellAboutYourself": {
+      "pt": "Conte sobre você",
+      "en": "Tell about yourself",
+      "es": "Cuenta sobre ti"
+    },
+    "email": {
+      "pt": "Email",
+      "en": "Email",
+      "es": "Email"
+    },
+    "yourEmail": {
+      "pt": "Seu email",
+      "en": "Your email",
+      "es": "Tu email"
+    },
+    "phone": {
+      "pt": "Telefone",
+      "en": "Phone",
+      "es": "Teléfono"
+    },
+    "yourPhone": {
+      "pt": "Seu telefone",
+      "en": "Your phone",
+      "es": "Tu teléfono"
+    },
+    "location": {
+      "pt": "Localização",
+      "en": "Location",
+      "es": "Ubicación"
+    },
+    "yourLocation": {
+      "pt": "Sua localização",
+      "en": "Your location",
+      "es": "Tu ubicación"
+    },
+    "website": {
+      "pt": "Website",
+      "en": "Website",
+      "es": "Sitio web"
+    },
+    "nameRequired": {
+      "pt": "Nome é obrigatório",
+      "en": "Name is required",
+      "es": "El nombre es obligatorio"
+    },
+    "nameMinLength": {
+      "pt": "Nome deve ter pelo menos 2 caracteres",
+      "en": "Name must be at least 2 characters",
+      "es": "El nombre debe tener al menos 2 caracteres"
+    },
+    "nameMaxLength": {
+      "pt": "Nome deve ter no máximo 50 caracteres",
+      "en": "Name must be at most 50 characters",
+      "es": "El nombre debe tener como máximo 50 caracteres"
+    },
+    "bioMaxLength": {
+      "pt": "Bio deve ter no máximo 500 caracteres",
+      "en": "Bio must be at most 500 characters",
+      "es": "La biografía debe tener como máximo 500 caracteres"
+    },
+    "invalidEmail": {
+      "pt": "Email inválido",
+      "en": "Invalid email",
+      "es": "Email inválido"
+    },
+    "invalidWebsite": {
+      "pt": "Website inválido",
+      "en": "Invalid website",
+      "es": "Sitio web inválido"
+    },
+    "saving": {
+      "pt": "Salvando...",
+      "en": "Saving...",
+      "es": "Guardando..."
+    },
+    "saveChanges": {
+      "pt": "Salvar Alterações",
+      "en": "Save Changes",
+      "es": "Guardar Cambios"
+    },
+    "memberSince": {
+      "pt": "Membro desde {{date}}",
+      "en": "Member since {{date}}",
+      "es": "Miembro desde {{date}}"
+    },
+    "followers": {
+      "pt": "Seguidores",
+      "en": "Followers",
+      "es": "Seguidores"
+    },
+    "following": {
+      "pt": "Seguindo",
+      "en": "Following",
+      "es": "Siguiendo"
+    },
+    "posts": {
+      "pt": "Posts",
+      "en": "Posts",
+      "es": "Publicaciones"
+    },
+    "reputation": {
+      "pt": "Reputação",
+      "en": "Reputation",
+      "es": "Reputación"
+    },
+    "excellent": {
+      "pt": "Excelente",
+      "en": "Excellent",
+      "es": "Excelente"
+    },
+    "good": {
+      "pt": "Bom",
+      "en": "Good",
+      "es": "Bueno"
+    },
+    "fair": {
+      "pt": "Regular",
+      "en": "Fair",
+      "es": "Regular"
+    },
+    "poor": {
+      "pt": "Ruim",
+      "en": "Poor",
+      "es": "Malo"
+    },
+    "trading": {
+      "pt": "Comércio",
+      "en": "Trading",
+      "es": "Comercio"
+    },
+    "social": {
+      "pt": "Social",
+      "en": "Social",
+      "es": "Social"
+    },
+    "community": {
+      "pt": "Comunidade",
+      "en": "Community",
+      "es": "Comunidad"
+    },
+    "score": {
+      "pt": "Pontuação",
+      "en": "Score",
+      "es": "Puntuación"
+    },
+    "transactions": {
+      "pt": "Transações",
+      "en": "Transactions",
+      "es": "Transacciones"
+    },
+    "successfulDeals": {
+      "pt": "Negócios Bem-sucedidos",
+      "en": "Successful Deals",
+      "es": "Negocios Exitosos"
+    },
+    "averageRating": {
+      "pt": "Avaliação Média",
+      "en": "Average Rating",
+      "es": "Calificación Promedio"
+    },
+    "endorsements": {
+      "pt": "Recomendações",
+      "en": "Endorsements",
+      "es": "Recomendaciones"
+    },
+    "badges": {
+      "pt": "Badges",
+      "en": "Badges",
+      "es": "Insignias"
+    },
+    "follow": {
+      "pt": "Seguir",
+      "en": "Follow",
+      "es": "Seguir"
+    },
+    "message": {
+      "pt": "Mensagem",
+      "en": "Message",
+      "es": "Mensaje"
+    },
+    "profileNotFound": {
+      "pt": "Perfil não encontrado",
+      "en": "Profile not found",
+      "es": "Perfil no encontrado"
+    },
+    "profileNotFoundDescription": {
+      "pt": "O perfil que você está procurando não existe ou foi removido.",
+      "en": "The profile you're looking for doesn't exist or has been removed.",
+      "es": "El perfil que buscas no existe o ha sido eliminado."
+    },
+    "profileTokenized": {
+      "pt": "Perfil Tokenizado",
+      "en": "Tokenized Profile",
+      "es": "Perfil Tokenizado"
+    },
+    "tokenized": {
+      "pt": "Tokenizado",
+      "en": "Tokenized",
+      "es": "Tokenizado"
+    },
+    "tokenInfo": {
+      "pt": "Informações do Token",
+      "en": "Token Information",
+      "es": "Información del Token"
+    },
+    "tokenId": {
+      "pt": "ID do Token",
+      "en": "Token ID",
+      "es": "ID del Token"
+    },
+    "marketValue": {
+      "pt": "Valor de Mercado",
+      "en": "Market Value",
+      "es": "Valor de Mercado"
+    },
+    "lastUpdated": {
+      "pt": "Última Atualização",
+      "en": "Last Updated",
+      "es": "Última Actualización"
+    },
+    "tokenBenefits": {
+      "pt": "Benefícios do Token",
+      "en": "Token Benefits",
+      "es": "Beneficios del Token"
+    },
+    "tradableAsset": {
+      "pt": "Ativo negociável",
+      "en": "Tradable asset",
+      "es": "Activo negociable"
+    },
+    "verifiedIdentity": {
+      "pt": "Identidade verificada",
+      "en": "Verified identity",
+      "es": "Identidad verificada"
+    },
+    "marketplaceBonus": {
+      "pt": "Bônus no marketplace",
+      "en": "Marketplace bonus",
+      "es": "Bono en marketplace"
+    },
+    "daoVotingPower": {
+      "pt": "Poder de voto na DAO",
+      "en": "DAO voting power",
+      "es": "Poder de voto en DAO"
+    },
+    "viewNFT": {
+      "pt": "Ver NFT",
+      "en": "View NFT",
+      "es": "Ver NFT"
+    },
+    "updateMetadata": {
+      "pt": "Atualizar Metadata",
+      "en": "Update Metadata",
+      "es": "Actualizar Metadata"
+    },
+    "transferToken": {
+      "pt": "Transferir Token",
+      "en": "Transfer Token",
+      "es": "Transferir Token"
+    },
+    "tokenizeProfile": {
+      "pt": "Tokenizar Perfil",
+      "en": "Tokenize Profile",
+      "es": "Tokenizar Perfil"
+    },
+    "tokenizeProfileDescription": {
+      "pt": "Transforme seu perfil em um ativo digital único e negociável na blockchain.",
+      "en": "Transform your profile into a unique, tradable digital asset on the blockchain.",
+      "es": "Transforma tu perfil en un activo digital único y negociable en la blockchain."
+    },
+    "tokenizationRequirements": {
+      "pt": "Requisitos para Tokenização",
+      "en": "Tokenization Requirements",
+      "es": "Requisitos para Tokenización"
+    },
+    "tokenizationBenefits": {
+      "pt": "Benefícios da Tokenização",
+      "en": "Tokenization Benefits",
+      "es": "Beneficios de la Tokenización"
+    },
+    "becomesTradableAsset": {
+      "pt": "Torna-se um ativo negociável",
+      "en": "Becomes a tradable asset",
+      "es": "Se convierte en activo negociable"
+    },
+    "verifiedIdentityBadge": {
+      "pt": "Badge de identidade verificada",
+      "en": "Verified identity badge",
+      "es": "Insignia de identidad verificada"
+    },
+    "marketplaceBonuses": {
+      "pt": "Bônus no marketplace",
+      "en": "Marketplace bonuses",
+      "es": "Bonos en marketplace"
+    },
+    "enhancedDaoRights": {
+      "pt": "Direitos aprimorados na DAO",
+      "en": "Enhanced DAO rights",
+      "es": "Derechos mejorados en DAO"
+    },
+    "tokenizing": {
+      "pt": "Tokenizando...",
+      "en": "Tokenizing...",
+      "es": "Tokenizando..."
+    },
+    "uploadingMetadata": {
+      "pt": "Enviando metadata...",
+      "en": "Uploading metadata...",
+      "es": "Subiendo metadata..."
+    },
+    "creatingNFT": {
+      "pt": "Criando NFT...",
+      "en": "Creating NFT...",
+      "es": "Creando NFT..."
+    },
+    "finalizingTokenization": {
+      "pt": "Finalizando tokenização...",
+      "en": "Finalizing tokenization...",
+      "es": "Finalizando tokenización..."
+    },
+    "tokenizationError": {
+      "pt": "Erro na Tokenização",
+      "en": "Tokenization Error",
+      "es": "Error de Tokenización"
+    },
+    "tokenizeMyProfile": {
+      "pt": "Tokenizar Meu Perfil",
+      "en": "Tokenize My Profile",
+      "es": "Tokenizar Mi Perfil"
+    },
+    "tokenizationDisclaimer": {
+      "pt": "Taxa de rede necessária para criação do NFT",
+      "en": "Network fee required for NFT creation",
+      "es": "Tarifa de red requerida para creación de NFT"
+    },
+    "activityStats": {
+      "pt": "Estatísticas de Atividade",
+      "en": "Activity Statistics",
+      "es": "Estadísticas de Actividad"
+    },
+    "totalEarnings": {
+      "pt": "Ganhos Totais",
+      "en": "Total Earnings",
+      "es": "Ganancias Totales"
+    },
+    "totalSpent": {
+      "pt": "Total Gasto",
+      "en": "Total Spent",
+      "es": "Total Gastado"
+    },
+    "businessesOwned": {
+      "pt": "Negócios Possuídos",
+      "en": "Businesses Owned",
+      "es": "Negocios Poseídos"
+    },
+    "productsListed": {
+      "pt": "Produtos Listados",
+      "en": "Products Listed",
+      "es": "Productos Listados"
+    },
+    "servicesOffered": {
+      "pt": "Serviços Oferecidos",
+      "en": "Services Offered",
+      "es": "Servicios Ofrecidos"
+    },
+    "socialInteractions": {
+      "pt": "Interações Sociais",
+      "en": "Social Interactions",
+      "es": "Interacciones Sociales"
+    },
+    "daoParticipation": {
+      "pt": "Participação na DAO",
+      "en": "DAO Participation",
+      "es": "Participación en DAO"
+    },
+    "viewAllStats": {
+      "pt": "Ver Todas as Estatísticas",
+      "en": "View All Statistics",
+      "es": "Ver Todas las Estadísticas"
+    },
+    "searchUsers": {
+      "pt": "Buscar Usuários",
+      "en": "Search Users",
+      "es": "Buscar Usuarios"
+    },
+    "searchUsersDescription": {
+      "pt": "Encontre outros usuários da comunidade Bazari",
+      "en": "Find other users in the Bazari community",
+      "es": "Encuentra otros usuarios en la comunidad Bazari"
+    },
+    "searchFilters": {
+      "pt": "Filtros de Busca",
+      "en": "Search Filters",
+      "es": "Filtros de Búsqueda"
+    },
+    "searchQuery": {
+      "pt": "Termo de Busca",
+      "en": "Search Query",
+      "es": "Término de Búsqueda"
+    },
+    "searchPlaceholder": {
+      "pt": "Nome, bio ou localização...",
+      "en": "Name, bio or location...",
+      "es": "Nombre, bio o ubicación..."
+    },
+    "anyLocation": {
+      "pt": "Qualquer localização",
+      "en": "Any location",
+      "es": "Cualquier ubicación"
+    },
+    "minReputation": {
+      "pt": "Reputação Mínima",
+      "en": "Minimum Reputation",
+      "es": "Reputación Mínima"
+    },
+    "anyReputation": {
+      "pt": "Qualquer reputação",
+      "en": "Any reputation",
+      "es": "Cualquier reputación"
+    },
+    "tokenizedOnly": {
+      "pt": "Apenas tokenizados",
+      "en": "Tokenized only",
+      "es": "Solo tokenizados"
+    },
+    "withAvatar": {
+      "pt": "Com avatar",
+      "en": "With avatar",
+      "es": "Con avatar"
+    },
+    "verifiedOnly": {
+      "pt": "Apenas verificados",
+      "en": "Verified only",
+      "es": "Solo verificados"
+    },
+    "searching": {
+      "pt": "Buscando...",
+      "en": "Searching...",
+      "es": "Buscando..."
+    },
+    "search": {
+      "pt": "Buscar",
+      "en": "Search",
+      "es": "Buscar"
+    },
+    "clearFilters": {
+      "pt": "Limpar Filtros",
+      "en": "Clear Filters",
+      "es": "Limpiar Filtros"
+    },
+    "searchResults": {
+      "pt": "Resultados da Busca",
+      "en": "Search Results",
+      "es": "Resultados de Búsqueda"
+    },
+    "resultsFor": {
+      "pt": "Resultados para",
+      "en": "Results for",
+      "es": "Resultados para"
+    },
+    "enterSearchTerm": {
+      "pt": "Digite um termo para buscar usuários",
+      "en": "Enter a term to search for users",
+      "es": "Ingresa un término para buscar usuarios"
+    },
+    "noUsersFound": {
+      "pt": "Nenhum usuário encontrado",
+      "en": "No users found",
+      "es": "No se encontraron usuarios"
+    },
+    "noUsersFoundFor": {
+      "pt": "Nenhum usuário encontrado para",
+      "en": "No users found for",
+      "es": "No se encontraron usuarios para"
+    },
+    "tryDifferentSearch": {
+      "pt": "Tente termos diferentes ou ajuste os filtros",
+      "en": "Try different terms or adjust filters",
+      "es": "Prueba términos diferentes o ajusta los filtros"
+    },
+    "showingFirst20Results": {
+      "pt": "Mostrando os primeiros 20 resultados",
+      "en": "Showing first 20 results",
+      "es": "Mostrando los primeros 20 resultados"
+    },
+    "loadMoreResults": {
+      "pt": "Carregar mais resultados",
+      "en": "Load more results",
+      "es": "Cargar más resultados"
+    },
+    "profileError": {
+      "pt": "Erro ao carregar perfil",
+      "en": "Error loading profile",
+      "es": "Error al cargar perfil"
+    },
+    "searchOtherUsers": {
+      "pt": "Buscar outros usuários",
+      "en": "Search other users",
+      "es": "Buscar otros usuarios"
+    },
+    "tryAgain": {
+      "pt": "Tentar novamente",
+      "en": "Try again",
+      "es": "Intentar de nuevo"
+    }
   }
+
 }

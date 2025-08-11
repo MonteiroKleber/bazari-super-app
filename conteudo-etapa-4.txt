@@ -1,0 +1,3558 @@
+# 👤 ETAPA 4 - Sistema de Perfil Tokenizado Bazari
+
+## 📁 Estrutura de Arquivos Criados
+
+```
+src/
+├── features/profile/
+│   ├── components/
+│   │   ├── ProfileEditor.tsx
+│   │   ├── ProfileViewer.tsx
+│   │   ├── AvatarUpload.tsx
+│   │   ├── TokenizationPanel.tsx
+│   │   ├── ReputationDisplay.tsx
+│   │   └── ProfileStats.tsx
+│   ├── hooks/
+│   │   ├── useProfile.ts
+│   │   ├── useUserSearch.ts
+│   │   ├── useTokenization.ts
+│   │   └── useImageUpload.ts
+│   ├── store/
+│   │   └── profileStore.ts
+│   ├── services/
+│   │   ├── profileService.ts
+│   │   └── tokenizationService.ts
+│   └── types/
+│       └── profile.types.ts
+├── services/ipfs/
+│   ├── ipfsClient.ts
+│   ├── ipfsService.ts
+│   └── pinataService.ts
+├── features/search/
+│   ├── components/
+│   │   ├── UserSearch.tsx
+│   │   └── SearchResults.tsx
+│   └── hooks/
+│       └── useGlobalSearch.ts
+├── entities/
+│   └── user.ts (expandido)
+└── pages/profile/
+    ├── MyProfilePage.tsx
+    ├── EditProfilePage.tsx
+    ├── PublicProfilePage.tsx
+    └── SearchUsersPage.tsx
+```
+
+---
+
+## 🔧 **1. ENTIDADE USER EXPANDIDA**
+
+```typescript
+// src/entities/user.ts (versão expandida)
+export interface User {
+  id: string
+  address: string
+  name: string
+  email?: string
+  bio?: string
+  avatar?: string
+  phone?: string
+  location?: string
+  website?: string
+  createdAt: Date
+  updatedAt: Date
+  lastActiveAt: Date
+  
+  // Tokenização e valor de mercado
+  isTokenized: boolean
+  tokenId?: string
+  tokenContractAddress?: string
+  marketValue?: number
+  tokenMetadata?: UserTokenMetadata
+  
+  // Reputação e social
+  reputation: ReputationScore
+  followersCount: number
+  followingCount: number
+  postsCount: number
+  
+  // Estatísticas de atividade
+  stats: UserStats
+  
+  // Configurações
+  settings: UserSettings
+  
+  // Verificação e badges
+  isVerified: boolean
+  badges: UserBadge[]
+  
+  // Privacidade
+  profileVisibility: 'public' | 'followers' | 'private'
+}
+
+export interface UserTokenMetadata {
+  name: string
+  description: string
+  image: string
+  attributes: Array<{
+    trait_type: string
+    value: string | number
+    display_type?: string
+  }>
+  external_url?: string
+  animation_url?: string
+  createdAt: Date
+  lastUpdated: Date
+}
+
+export interface ReputationScore {
+  overall: number // 0-100
+  trading: number // 0-100  
+  social: number // 0-100
+  community: number // 0-100
+  details: {
+    totalTransactions: number
+    successfulDeals: number
+    averageRating: number
+    reviewsCount: number
+    endorsements: number
+  }
+}
+
+export interface UserStats {
+  totalEarnings: number
+  totalSpent: number
+  businessesOwned: number
+  productsListed: number
+  servicesOffered: number
+  socialInteractions: number
+  daoParticipation: number
+}
+
+export interface UserBadge {
+  id: string
+  type: 'achievement' | 'verification' | 'special'
+  name: string
+  description: string
+  icon: string
+  color: string
+  earnedAt: Date
+  isVisible: boolean
+}
+
+export interface UserSettings {
+  language: 'pt' | 'en' | 'es'
+  theme: 'light' | 'dark' | 'auto'
+  currency: 'BZR' | 'USD' | 'BRL' | 'EUR'
+  notifications: NotificationSettings
+  privacy: PrivacySettings
+  profile: ProfileSettings
+}
+
+export interface ProfileSettings {
+  showEmail: boolean
+  showPhone: boolean
+  showLocation: boolean
+  showWebsite: boolean
+  showStats: boolean
+  showBadges: boolean
+  allowMessages: boolean
+  allowFollows: boolean
+  autoTokenizeContent: boolean
+}
+```
+
+---
+
+## 📡 **2. SERVIÇOS IPFS**
+
+```typescript
+// src/services/ipfs/ipfsClient.ts
+interface IPFSConfig {
+  gateway: string
+  apiEndpoint: string
+  projectId?: string
+  projectSecret?: string
+  pinataJWT?: string
+}
+
+export class IPFSClient {
+  private config: IPFSConfig
+  
+  constructor(config: IPFSConfig) {
+    this.config = config
+  }
+
+  /**
+   * Faz upload de arquivo para IPFS
+   */
+  async uploadFile(file: File, options?: { pin?: boolean; metadata?: any }): Promise<string> {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      if (options?.metadata) {
+        formData.append('pinataMetadata', JSON.stringify(options.metadata))
+      }
+
+      const response = await fetch(`${this.config.apiEndpoint}/pinning/pinFileToIPFS`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.pinataJWT}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error(`Upload falhou: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      return result.IpfsHash
+    } catch (error) {
+      console.error('Erro no upload IPFS:', error)
+      throw new Error('Falha no upload do arquivo')
+    }
+  }
+
+  /**
+   * Faz upload de dados JSON para IPFS
+   */
+  async uploadJSON(data: any, options?: { pin?: boolean; metadata?: any }): Promise<string> {
+    try {
+      const jsonString = JSON.stringify(data)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const file = new File([blob], 'data.json', { type: 'application/json' })
+      
+      return this.uploadFile(file, options)
+    } catch (error) {
+      console.error('Erro no upload JSON IPFS:', error)
+      throw new Error('Falha no upload dos dados')
+    }
+  }
+
+  /**
+   * Baixa arquivo do IPFS
+   */
+  async downloadFile(hash: string): Promise<Blob> {
+    try {
+      const response = await fetch(`${this.config.gateway}/ipfs/${hash}`)
+      
+      if (!response.ok) {
+        throw new Error(`Download falhou: ${response.statusText}`)
+      }
+
+      return response.blob()
+    } catch (error) {
+      console.error('Erro no download IPFS:', error)
+      throw new Error('Falha no download do arquivo')
+    }
+  }
+
+  /**
+   * Baixa dados JSON do IPFS
+   */
+  async downloadJSON(hash: string): Promise<any> {
+    try {
+      const response = await fetch(`${this.config.gateway}/ipfs/${hash}`)
+      
+      if (!response.ok) {
+        throw new Error(`Download falhou: ${response.statusText}`)
+      }
+
+      return response.json()
+    } catch (error) {
+      console.error('Erro no download JSON IPFS:', error)
+      throw new Error('Falha no download dos dados')
+    }
+  }
+
+  /**
+   * Obtém URL público do arquivo
+   */
+  getPublicURL(hash: string): string {
+    return `${this.config.gateway}/ipfs/${hash}`
+  }
+
+  /**
+   * Pin arquivo existente
+   */
+  async pinFile(hash: string, metadata?: any): Promise<void> {
+    try {
+      const body: any = { hashToPin: hash }
+      
+      if (metadata) {
+        body.pinataMetadata = metadata
+      }
+
+      const response = await fetch(`${this.config.apiEndpoint}/pinning/pinByHash`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.pinataJWT}`
+        },
+        body: JSON.stringify(body)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Pin falhou: ${response.statusText}`)
+      }
+    } catch (error) {
+      console.error('Erro no pin IPFS:', error)
+      throw new Error('Falha ao fixar arquivo')
+    }
+  }
+
+  /**
+   * Remove pin do arquivo
+   */
+  async unpinFile(hash: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.config.apiEndpoint}/pinning/unpin/${hash}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${this.config.pinataJWT}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`Unpin falhou: ${response.statusText}`)
+      }
+    } catch (error) {
+      console.error('Erro no unpin IPFS:', error)
+      throw new Error('Falha ao remover fixação')
+    }
+  }
+}
+
+// Instância padrão do cliente IPFS
+export const ipfsClient = new IPFSClient({
+  gateway: import.meta.env.VITE_IPFS_GATEWAY || 'https://gateway.pinata.cloud',
+  apiEndpoint: 'https://api.pinata.cloud',
+  pinataJWT: import.meta.env.VITE_IPFS_JWT_TOKEN
+})
+```
+
+```typescript
+// src/services/ipfs/ipfsService.ts
+import { ipfsClient } from './ipfsClient'
+
+interface ImageUploadOptions {
+  maxWidth?: number
+  maxHeight?: number
+  quality?: number
+  format?: 'jpeg' | 'png' | 'webp'
+}
+
+interface UploadProgress {
+  loaded: number
+  total: number
+  percentage: number
+}
+
+export class IPFSService {
+  /**
+   * Otimiza e faz upload de imagem
+   */
+  async uploadImage(
+    file: File, 
+    options: ImageUploadOptions = {},
+    onProgress?: (progress: UploadProgress) => void
+  ): Promise<string> {
+    const {
+      maxWidth = 1024,
+      maxHeight = 1024,
+      quality = 0.8,
+      format = 'jpeg'
+    } = options
+
+    try {
+      // Otimiza imagem antes do upload
+      const optimizedFile = await this.optimizeImage(file, {
+        maxWidth,
+        maxHeight,
+        quality,
+        format
+      })
+
+      // Simula progresso (em produção usar XMLHttpRequest)
+      if (onProgress) {
+        const progressInterval = setInterval(() => {
+          const progress = Math.min(90, Math.random() * 100)
+          onProgress({
+            loaded: progress,
+            total: 100,
+            percentage: progress
+          })
+        }, 100)
+
+        setTimeout(() => clearInterval(progressInterval), 1000)
+      }
+
+      const hash = await ipfsClient.uploadFile(optimizedFile, {
+        pin: true,
+        metadata: {
+          name: file.name,
+          type: 'image',
+          originalSize: file.size,
+          optimizedSize: optimizedFile.size,
+          uploadedAt: new Date().toISOString()
+        }
+      })
+
+      if (onProgress) {
+        onProgress({ loaded: 100, total: 100, percentage: 100 })
+      }
+
+      return hash
+    } catch (error) {
+      console.error('Erro no upload de imagem:', error)
+      throw new Error('Falha no upload da imagem')
+    }
+  }
+
+  /**
+   * Otimiza imagem para upload
+   */
+  private async optimizeImage(
+    file: File, 
+    options: Required<ImageUploadOptions>
+  ): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+
+      img.onload = () => {
+        // Calcula dimensões mantendo aspect ratio
+        const { width, height } = this.calculateDimensions(
+          img.width,
+          img.height,
+          options.maxWidth,
+          options.maxHeight
+        )
+
+        canvas.width = width
+        canvas.height = height
+
+        // Desenha imagem redimensionada
+        ctx?.drawImage(img, 0, 0, width, height)
+
+        // Converte para blob
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const optimizedFile = new File(
+                [blob],
+                file.name,
+                { type: `image/${options.format}` }
+              )
+              resolve(optimizedFile)
+            } else {
+              reject(new Error('Falha na otimização da imagem'))
+            }
+          },
+          `image/${options.format}`,
+          options.quality
+        )
+      }
+
+      img.onerror = () => {
+        reject(new Error('Falha ao carregar imagem'))
+      }
+
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
+  /**
+   * Calcula dimensões mantendo aspect ratio
+   */
+  private calculateDimensions(
+    originalWidth: number,
+    originalHeight: number,
+    maxWidth: number,
+    maxHeight: number
+  ): { width: number; height: number } {
+    const aspectRatio = originalWidth / originalHeight
+
+    let width = originalWidth
+    let height = originalHeight
+
+    if (width > maxWidth) {
+      width = maxWidth
+      height = width / aspectRatio
+    }
+
+    if (height > maxHeight) {
+      height = maxHeight
+      width = height * aspectRatio
+    }
+
+    return { width: Math.round(width), height: Math.round(height) }
+  }
+
+  /**
+   * Upload de metadata de perfil
+   */
+  async uploadProfileMetadata(metadata: any): Promise<string> {
+    try {
+      return await ipfsClient.uploadJSON(metadata, {
+        pin: true,
+        metadata: {
+          type: 'profile-metadata',
+          version: '1.0',
+          uploadedAt: new Date().toISOString()
+        }
+      })
+    } catch (error) {
+      console.error('Erro no upload de metadata:', error)
+      throw new Error('Falha no upload dos dados do perfil')
+    }
+  }
+
+  /**
+   * Download de metadata de perfil
+   */
+  async downloadProfileMetadata(hash: string): Promise<any> {
+    try {
+      return await ipfsClient.downloadJSON(hash)
+    } catch (error) {
+      console.error('Erro no download de metadata:', error)
+      throw new Error('Falha no download dos dados do perfil')
+    }
+  }
+
+  /**
+   * Valida arquivo de imagem
+   */
+  validateImageFile(file: File): { isValid: boolean; error?: string } {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    const maxSize = 10 * 1024 * 1024 // 10MB
+
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        isValid: false,
+        error: 'Formato de arquivo não suportado. Use JPEG, PNG, WebP ou GIF.'
+      }
+    }
+
+    if (file.size > maxSize) {
+      return {
+        isValid: false,
+        error: 'Arquivo muito grande. Tamanho máximo: 10MB.'
+      }
+    }
+
+    return { isValid: true }
+  }
+
+  /**
+   * Obtém URL otimizada da imagem
+   */
+  getOptimizedImageURL(hash: string, options?: {
+    width?: number
+    height?: number
+    quality?: number
+  }): string {
+    const baseURL = ipfsClient.getPublicURL(hash)
+    
+    if (!options) {
+      return baseURL
+    }
+
+    // Em produção, usar serviço de otimização como Cloudinary ou ImageKit
+    const params = new URLSearchParams()
+    if (options.width) params.append('w', options.width.toString())
+    if (options.height) params.append('h', options.height.toString())
+    if (options.quality) params.append('q', options.quality.toString())
+
+    return params.toString() ? `${baseURL}?${params.toString()}` : baseURL
+  }
+}
+
+export const ipfsService = new IPFSService()
+```
+
+---
+
+## 🏪 **3. ZUSTAND PROFILE STORE**
+
+```typescript
+// src/features/profile/store/profileStore.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { User, UserTokenMetadata } from '@entities/user'
+
+interface ProfileState {
+  // Estado do perfil
+  currentProfile: User | null
+  profileCache: Map<string, User>
+  isLoading: boolean
+  error: string | null
+  
+  // Estado de edição
+  isEditing: boolean
+  editingData: Partial<User> | null
+  hasUnsavedChanges: boolean
+  
+  // Estado de upload
+  avatarUploading: boolean
+  uploadProgress: number
+  
+  // Estado de tokenização
+  tokenizing: boolean
+  tokenizationProgress: number
+
+  // Ações de perfil
+  loadProfile: (userId?: string) => Promise<void>
+  updateProfile: (updates: Partial<User>) => Promise<boolean>
+  uploadAvatar: (file: File) => Promise<string>
+  
+  // Ações de edição
+  startEditing: (initialData?: Partial<User>) => void
+  cancelEditing: () => void
+  saveEditing: () => Promise<boolean>
+  updateEditingData: (updates: Partial<User>) => void
+  
+  // Ações de tokenização
+  tokenizeProfile: (metadata: UserTokenMetadata) => Promise<boolean>
+  updateTokenMetadata: (metadata: Partial<UserTokenMetadata>) => Promise<boolean>
+  
+  // Ações de cache
+  cacheProfile: (profile: User) => void
+  getCachedProfile: (userId: string) => User | null
+  clearCache: () => void
+  
+  // Utilitários
+  setLoading: (loading: boolean) => void
+  setError: (error: string | null) => void
+  clearError: () => void
+}
+
+export const useProfileStore = create<ProfileState>()(
+  persist(
+    (set, get) => ({
+      currentProfile: null,
+      profileCache: new Map(),
+      isLoading: false,
+      error: null,
+      isEditing: false,
+      editingData: null,
+      hasUnsavedChanges: false,
+      avatarUploading: false,
+      uploadProgress: 0,
+      tokenizing: false,
+      tokenizationProgress: 0,
+
+      loadProfile: async (userId?: string) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          // Se não especificar userId, carrega perfil atual
+          if (!userId) {
+            // Aqui carregaria do serviço de autenticação
+            const authService = await import('@features/auth/store/authStore')
+            const currentAccount = authService.useAuthStore.getState().currentAccount
+            
+            if (!currentAccount) {
+              throw new Error('Usuário não autenticado')
+            }
+            
+            userId = currentAccount.id
+          }
+
+          // Verifica cache primeiro
+          const cached = get().getCachedProfile(userId)
+          if (cached) {
+            set({ currentProfile: cached, isLoading: false })
+            return
+          }
+
+          // Carrega do serviço
+          const profileService = await import('../services/profileService')
+          const profile = await profileService.profileService.getProfile(userId)
+          
+          set({ 
+            currentProfile: profile,
+            isLoading: false
+          })
+          
+          // Adiciona ao cache
+          get().cacheProfile(profile)
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Erro ao carregar perfil',
+            isLoading: false 
+          })
+        }
+      },
+
+      updateProfile: async (updates: Partial<User>) => {
+        const { currentProfile } = get()
+        if (!currentProfile) {
+          set({ error: 'Nenhum perfil carregado' })
+          return false
+        }
+
+        set({ isLoading: true, error: null })
+        
+        try {
+          const profileService = await import('../services/profileService')
+          const updatedProfile = await profileService.profileService.updateProfile(
+            currentProfile.id,
+            updates
+          )
+          
+          set({ 
+            currentProfile: updatedProfile,
+            isLoading: false,
+            hasUnsavedChanges: false
+          })
+          
+          // Atualiza cache
+          get().cacheProfile(updatedProfile)
+          
+          return true
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Erro ao atualizar perfil',
+            isLoading: false 
+          })
+          return false
+        }
+      },
+
+      uploadAvatar: async (file: File) => {
+        set({ avatarUploading: true, uploadProgress: 0, error: null })
+        
+        try {
+          const ipfsService = await import('@services/ipfs/ipfsService')
+          
+          const avatarHash = await ipfsService.ipfsService.uploadImage(
+            file,
+            { maxWidth: 400, maxHeight: 400, quality: 0.8 },
+            (progress) => {
+              set({ uploadProgress: progress.percentage })
+            }
+          )
+          
+          const avatarURL = ipfsService.ipfsService.getOptimizedImageURL(avatarHash)
+          
+          // Atualiza perfil com novo avatar
+          const success = await get().updateProfile({ avatar: avatarURL })
+          
+          set({ avatarUploading: false, uploadProgress: 0 })
+          
+          if (success) {
+            return avatarURL
+          } else {
+            throw new Error('Falha ao atualizar perfil com novo avatar')
+          }
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Erro no upload do avatar',
+            avatarUploading: false,
+            uploadProgress: 0
+          })
+          throw error
+        }
+      },
+
+      startEditing: (initialData?: Partial<User>) => {
+        const { currentProfile } = get()
+        
+        set({
+          isEditing: true,
+          editingData: initialData || { ...currentProfile },
+          hasUnsavedChanges: false
+        })
+      },
+
+      cancelEditing: () => {
+        set({
+          isEditing: false,
+          editingData: null,
+          hasUnsavedChanges: false
+        })
+      },
+
+      saveEditing: async () => {
+        const { editingData } = get()
+        if (!editingData) return false
+        
+        const success = await get().updateProfile(editingData)
+        
+        if (success) {
+          set({
+            isEditing: false,
+            editingData: null,
+            hasUnsavedChanges: false
+          })
+        }
+        
+        return success
+      },
+
+      updateEditingData: (updates: Partial<User>) => {
+        set(state => ({
+          editingData: { ...state.editingData, ...updates },
+          hasUnsavedChanges: true
+        }))
+      },
+
+      tokenizeProfile: async (metadata: UserTokenMetadata) => {
+        set({ tokenizing: true, tokenizationProgress: 0, error: null })
+        
+        try {
+          const tokenizationService = await import('../services/tokenizationService')
+          
+          const tokenData = await tokenizationService.tokenizationService.tokenizeProfile(
+            metadata,
+            (progress) => {
+              set({ tokenizationProgress: progress })
+            }
+          )
+          
+          // Atualiza perfil com dados de tokenização
+          const success = await get().updateProfile({
+            isTokenized: true,
+            tokenId: tokenData.tokenId,
+            tokenContractAddress: tokenData.contractAddress,
+            tokenMetadata: metadata
+          })
+          
+          set({ tokenizing: false, tokenizationProgress: 0 })
+          
+          return success
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Erro na tokenização',
+            tokenizing: false,
+            tokenizationProgress: 0
+          })
+          return false
+        }
+      },
+
+      updateTokenMetadata: async (metadata: Partial<UserTokenMetadata>) => {
+        const { currentProfile } = get()
+        if (!currentProfile?.isTokenized || !currentProfile.tokenMetadata) {
+          set({ error: 'Perfil não tokenizado' })
+          return false
+        }
+
+        const updatedMetadata = { ...currentProfile.tokenMetadata, ...metadata }
+        return get().updateProfile({ tokenMetadata: updatedMetadata })
+      },
+
+      cacheProfile: (profile: User) => {
+        set(state => {
+          const newCache = new Map(state.profileCache)
+          newCache.set(profile.id, profile)
+          return { profileCache: newCache }
+        })
+      },
+
+      getCachedProfile: (userId: string) => {
+        return get().profileCache.get(userId) || null
+      },
+
+      clearCache: () => {
+        set({ profileCache: new Map() })
+      },
+
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
+      setError: (error: string | null) => set({ error }),
+      clearError: () => set({ error: null })
+    }),
+    {
+      name: 'bazari-profile',
+      partialize: (state) => ({
+        profileCache: Array.from(state.profileCache.entries())
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.profileCache) {
+          // Reconstrói Map do cache a partir do array
+          state.profileCache = new Map(state.profileCache as any)
+        }
+      }
+    }
+  )
+)
+```
+
+---
+
+## 🔄 **4. SERVIÇOS DE PERFIL**
+
+```typescript
+// src/features/profile/services/profileService.ts
+import { nanoid } from 'nanoid'
+import type { User, UserTokenMetadata, ReputationScore } from '@entities/user'
+import { ipfsService } from '@services/ipfs/ipfsService'
+
+interface ProfileUpdateData {
+  name?: string
+  bio?: string
+  email?: string
+  phone?: string
+  location?: string
+  website?: string
+  avatar?: string
+  settings?: Partial<User['settings']>
+}
+
+interface SearchFilters {
+  location?: string
+  isTokenized?: boolean
+  minReputation?: number
+  hasAvatar?: boolean
+  isVerified?: boolean
+}
+
+export class ProfileService {
+  private profiles: Map<string, User> = new Map()
+
+  /**
+   * Obtém perfil por ID
+   */
+  async getProfile(userId: string): Promise<User> {
+    try {
+      // Simula busca no banco/blockchain
+      const cachedProfile = this.profiles.get(userId)
+      if (cachedProfile) {
+        return { ...cachedProfile, lastActiveAt: new Date() }
+      }
+
+      // Simula perfil padrão para desenvolvimento
+      const defaultProfile: User = {
+        id: userId,
+        address: `5${userId.slice(0, 30)}...`,
+        name: 'Usuário Bazari',
+        bio: 'Bem-vindo ao Bazari! 🚀',
+        avatar: undefined,
+        email: undefined,
+        phone: undefined,
+        location: undefined,
+        website: undefined,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastActiveAt: new Date(),
+        
+        isTokenized: false,
+        tokenId: undefined,
+        tokenContractAddress: undefined,
+        marketValue: 0,
+        tokenMetadata: undefined,
+        
+        reputation: {
+          overall: 75,
+          trading: 80,
+          social: 70,
+          community: 75,
+          details: {
+            totalTransactions: 12,
+            successfulDeals: 11,
+            averageRating: 4.5,
+            reviewsCount: 8,
+            endorsements: 15
+          }
+        },
+        followersCount: 156,
+        followingCount: 89,
+        postsCount: 24,
+        
+        stats: {
+          totalEarnings: 2500.75,
+          totalSpent: 1800.25,
+          businessesOwned: 1,
+          productsListed: 5,
+          servicesOffered: 2,
+          socialInteractions: 342,
+          daoParticipation: 12
+        },
+        
+        settings: {
+          language: 'pt',
+          theme: 'light',
+          currency: 'BZR',
+          notifications: {
+            email: true,
+            push: true,
+            social: true,
+            marketplace: true,
+            dao: true,
+            wallet: true
+          },
+          privacy: {
+            profileVisibility: 'public',
+            showEmail: false,
+            showPhone: false,
+            showLocation: true,
+            allowMessages: true
+          },
+          profile: {
+            showEmail: false,
+            showPhone: false,
+            showLocation: true,
+            showWebsite: true,
+            showStats: true,
+            showBadges: true,
+            allowMessages: true,
+            allowFollows: true,
+            autoTokenizeContent: false
+          }
+        },
+        
+        isVerified: false,
+        badges: [
+          {
+            id: nanoid(),
+            type: 'achievement',
+            name: 'Primeiro Post',
+            description: 'Fez sua primeira publicação',
+            icon: '📝',
+            color: '#10B981',
+            earnedAt: new Date(),
+            isVisible: true
+          },
+          {
+            id: nanoid(),
+            type: 'verification',
+            name: 'Comerciante Verificado',
+            description: 'Perfil verificado para comércio',
+            icon: '✅',
+            color: '#3B82F6',
+            earnedAt: new Date(),
+            isVisible: true
+          }
+        ],
+        
+        profileVisibility: 'public'
+      }
+
+      this.profiles.set(userId, defaultProfile)
+      return defaultProfile
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error)
+      throw new Error('Falha ao carregar perfil do usuário')
+    }
+  }
+
+  /**
+   * Atualiza perfil
+   */
+  async updateProfile(userId: string, updates: ProfileUpdateData): Promise<User> {
+    try {
+      const currentProfile = await this.getProfile(userId)
+      
+      const updatedProfile: User = {
+        ...currentProfile,
+        ...updates,
+        updatedAt: new Date()
+      }
+
+      // Valida dados de entrada
+      this.validateProfileData(updatedProfile)
+
+      // Simula persistência
+      this.profiles.set(userId, updatedProfile)
+      
+      return updatedProfile
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error)
+      throw new Error('Falha ao atualizar perfil')
+    }
+  }
+
+  /**
+   * Busca usuários
+   */
+  async searchUsers(
+    query: string, 
+    filters: SearchFilters = {},
+    limit: number = 20
+  ): Promise<User[]> {
+    try {
+      // Simula busca de usuários
+      const allUsers = Array.from(this.profiles.values())
+      
+      let results = allUsers.filter(user => {
+        // Busca por nome, bio ou localização
+        const searchTerm = query.toLowerCase()
+        const nameMatch = user.name.toLowerCase().includes(searchTerm)
+        const bioMatch = user.bio?.toLowerCase().includes(searchTerm) || false
+        const locationMatch = user.location?.toLowerCase().includes(searchTerm) || false
+        
+        return nameMatch || bioMatch || locationMatch
+      })
+
+      // Aplica filtros
+      if (filters.location) {
+        results = results.filter(user => 
+          user.location?.toLowerCase().includes(filters.location!.toLowerCase())
+        )
+      }
+
+      if (filters.isTokenized !== undefined) {
+        results = results.filter(user => user.isTokenized === filters.isTokenized)
+      }
+
+      if (filters.minReputation) {
+        results = results.filter(user => 
+          user.reputation.overall >= filters.minReputation!
+        )
+      }
+
+      if (filters.hasAvatar) {
+        results = results.filter(user => !!user.avatar)
+      }
+
+      if (filters.isVerified) {
+        results = results.filter(user => user.isVerified)
+      }
+
+      // Ordena por relevância (reputação + followers)
+      results.sort((a, b) => {
+        const scoreA = a.reputation.overall + (a.followersCount / 100)
+        const scoreB = b.reputation.overall + (b.followersCount / 100)
+        return scoreB - scoreA
+      })
+
+      return results.slice(0, limit)
+    } catch (error) {
+      console.error('Erro na busca de usuários:', error)
+      throw new Error('Falha na busca de usuários')
+    }
+  }
+
+  /**
+   * Obtém estatísticas de reputação
+   */
+  async calculateReputation(userId: string): Promise<ReputationScore> {
+    try {
+      // Simula cálculo de reputação baseado em atividades
+      const profile = await this.getProfile(userId)
+      
+      // Fórmulas de reputação (em produção usar dados reais)
+      const tradingScore = Math.min(100, (profile.stats.totalEarnings / 100) * 10)
+      const socialScore = Math.min(100, (profile.followersCount / 10) + (profile.postsCount * 2))
+      const communityScore = Math.min(100, profile.stats.daoParticipation * 5)
+      const overallScore = (tradingScore + socialScore + communityScore) / 3
+
+      return {
+        overall: Math.round(overallScore),
+        trading: Math.round(tradingScore),
+        social: Math.round(socialScore),
+        community: Math.round(communityScore),
+        details: profile.reputation.details
+      }
+    } catch (error) {
+      console.error('Erro no cálculo de reputação:', error)
+      throw new Error('Falha no cálculo de reputação')
+    }
+  }
+
+  /**
+   * Valida dados do perfil
+   */
+  private validateProfileData(profile: Partial<User>): void {
+    if (profile.name && (profile.name.length < 2 || profile.name.length > 50)) {
+      throw new Error('Nome deve ter entre 2 e 50 caracteres')
+    }
+
+    if (profile.bio && profile.bio.length > 500) {
+      throw new Error('Bio deve ter no máximo 500 caracteres')
+    }
+
+    if (profile.email && !this.isValidEmail(profile.email)) {
+      throw new Error('Email inválido')
+    }
+
+    if (profile.website && !this.isValidURL(profile.website)) {
+      throw new Error('Website inválido')
+    }
+  }
+
+  /**
+   * Valida email
+   */
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  /**
+   * Valida URL
+   */
+  private isValidURL(url: string): boolean {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+}
+
+export const profileService = new ProfileService()
+```
+
+```typescript
+// src/features/profile/services/tokenizationService.ts
+import { nanoid } from 'nanoid'
+import type { UserTokenMetadata } from '@entities/user'
+import { ipfsService } from '@services/ipfs/ipfsService'
+
+interface TokenizationResult {
+  tokenId: string
+  contractAddress: string
+  transactionHash: string
+  metadataHash: string
+}
+
+interface TokenizationProgress {
+  step: 'uploading' | 'minting' | 'completing'
+  percentage: number
+  message: string
+}
+
+export class TokenizationService {
+  /**
+   * Tokeniza perfil de usuário
+   */
+  async tokenizeProfile(
+    metadata: UserTokenMetadata,
+    onProgress?: (progress: number) => void
+  ): Promise<TokenizationResult> {
+    try {
+      // Passo 1: Upload de metadata para IPFS (30%)
+      onProgress?.(10)
+      const metadataHash = await ipfsService.uploadProfileMetadata(metadata)
+      onProgress?.(30)
+
+      // Passo 2: Criação do NFT na blockchain (70%)
+      onProgress?.(50)
+      const tokenResult = await this.mintProfileNFT(metadataHash, metadata)
+      onProgress?.(80)
+
+      // Passo 3: Finalização (100%)
+      onProgress?.(100)
+
+      return {
+        tokenId: tokenResult.tokenId,
+        contractAddress: tokenResult.contractAddress,
+        transactionHash: tokenResult.transactionHash,
+        metadataHash
+      }
+    } catch (error) {
+      console.error('Erro na tokenização:', error)
+      throw new Error('Falha na tokenização do perfil')
+    }
+  }
+
+  /**
+   * Simula criação de NFT na blockchain
+   */
+  private async mintProfileNFT(
+    metadataHash: string, 
+    metadata: UserTokenMetadata
+  ): Promise<Omit<TokenizationResult, 'metadataHash'>> {
+    // Simula delay da transação blockchain
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    // Simula dados de resposta da blockchain
+    return {
+      tokenId: `bzr_profile_${nanoid()}`,
+      contractAddress: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+      transactionHash: `0x${nanoid(64)}`
+    }
+  }
+
+  /**
+   * Atualiza metadata do token
+   */
+  async updateTokenMetadata(
+    tokenId: string,
+    newMetadata: UserTokenMetadata
+  ): Promise<boolean> {
+    try {
+      // Upload nova metadata
+      const metadataHash = await ipfsService.uploadProfileMetadata(newMetadata)
+
+      // Simula atualização na blockchain
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      return true
+    } catch (error) {
+      console.error('Erro na atualização de metadata:', error)
+      throw new Error('Falha na atualização da metadata do token')
+    }
+  }
+
+  /**
+   * Obtém valor de mercado estimado do token
+   */
+  async getTokenMarketValue(tokenId: string): Promise<number> {
+    try {
+      // Simula cálculo de valor de mercado
+      // Em produção, usar dados de transações reais
+      const baseValue = 100 // BZR
+      const randomMultiplier = 0.5 + Math.random() * 2 // 0.5x - 2.5x
+      
+      return Math.round(baseValue * randomMultiplier * 100) / 100
+    } catch (error) {
+      console.error('Erro ao obter valor de mercado:', error)
+      return 0
+    }
+  }
+
+  /**
+   * Verifica se perfil pode ser tokenizado
+   */
+  canTokenizeProfile(profileData: {
+    name: string
+    bio?: string
+    avatar?: string
+    reputation: { overall: number }
+  }): { canTokenize: boolean; reason?: string } {
+    if (!profileData.name || profileData.name.length < 3) {
+      return {
+        canTokenize: false,
+        reason: 'Nome do perfil deve ter pelo menos 3 caracteres'
+      }
+    }
+
+    if (!profileData.bio || profileData.bio.length < 20) {
+      return {
+        canTokenize: false,
+        reason: 'Bio deve ter pelo menos 20 caracteres'
+      }
+    }
+
+    if (!profileData.avatar) {
+      return {
+        canTokenize: false,
+        reason: 'Avatar é obrigatório para tokenização'
+      }
+    }
+
+    if (profileData.reputation.overall < 50) {
+      return {
+        canTokenize: false,
+        reason: 'Reputação mínima de 50 pontos necessária'
+      }
+    }
+
+    return { canTokenize: true }
+  }
+
+  /**
+   * Gera metadata padrão para tokenização
+   */
+  generateDefaultTokenMetadata(profile: {
+    name: string
+    bio: string
+    avatar: string
+    reputation: { overall: number }
+    stats: {
+      totalEarnings: number
+      followersCount: number
+      postsCount: number
+    }
+  }): UserTokenMetadata {
+    return {
+      name: `${profile.name} - Perfil Bazari`,
+      description: profile.bio,
+      image: profile.avatar,
+      external_url: `https://bazari.app/profile/${profile.name}`,
+      attributes: [
+        {
+          trait_type: 'Reputação',
+          value: profile.reputation.overall,
+          display_type: 'number'
+        },
+        {
+          trait_type: 'Seguidores',
+          value: profile.stats.followersCount,
+          display_type: 'number'
+        },
+        {
+          trait_type: 'Posts',
+          value: profile.stats.postsCount,
+          display_type: 'number'
+        },
+        {
+          trait_type: 'Ganhos Totais',
+          value: `${profile.stats.totalEarnings} BZR`
+        },
+        {
+          trait_type: 'Tipo',
+          value: 'Perfil de Usuário'
+        },
+        {
+          trait_type: 'Plataforma',
+          value: 'Bazari'
+        }
+      ],
+      createdAt: new Date(),
+      lastUpdated: new Date()
+    }
+  }
+}
+
+export const tokenizationService = new TokenizationService()
+```
+
+---
+
+## 🪝 **5. HOOKS ESPECIALIZADOS**
+
+```typescript
+// src/features/profile/hooks/useProfile.ts
+import { useCallback } from 'react'
+import { useProfileStore } from '../store/profileStore'
+import type { User, UserTokenMetadata } from '@entities/user'
+
+export function useProfile(userId?: string) {
+  const {
+    currentProfile,
+    isLoading,
+    error,
+    isEditing,
+    editingData,
+    hasUnsavedChanges,
+    avatarUploading,
+    uploadProgress,
+    tokenizing,
+    tokenizationProgress,
+    loadProfile,
+    updateProfile,
+    uploadAvatar,
+    startEditing,
+    cancelEditing,
+    saveEditing,
+    updateEditingData,
+    tokenizeProfile,
+    updateTokenMetadata,
+    clearError
+  } = useProfileStore()
+
+  const handleLoadProfile = useCallback(() => {
+    return loadProfile(userId)
+  }, [loadProfile, userId])
+
+  const handleUpdateProfile = useCallback((updates: Partial<User>) => {
+    return updateProfile(updates)
+  }, [updateProfile])
+
+  const handleUploadAvatar = useCallback((file: File) => {
+    return uploadAvatar(file)
+  }, [uploadAvatar])
+
+  const handleTokenizeProfile = useCallback((metadata: UserTokenMetadata) => {
+    return tokenizeProfile(metadata)
+  }, [tokenizeProfile])
+
+  return {
+    // Estado
+    profile: currentProfile,
+    isLoading,
+    error,
+    isEditing,
+    editingData,
+    hasUnsavedChanges,
+    avatarUploading,
+    uploadProgress,
+    tokenizing,
+    tokenizationProgress,
+
+    // Ações básicas
+    loadProfile: handleLoadProfile,
+    updateProfile: handleUpdateProfile,
+    uploadAvatar: handleUploadAvatar,
+
+    // Ações de edição
+    startEditing,
+    cancelEditing,
+    saveEditing,
+    updateEditingData,
+
+    // Ações de tokenização
+    tokenizeProfile: handleTokenizeProfile,
+    updateTokenMetadata,
+
+    // Utilitários
+    clearError,
+    isOwner: !userId || (currentProfile?.id === userId),
+    canEdit: !userId || (currentProfile?.id === userId),
+    hasAvatar: !!currentProfile?.avatar,
+    isTokenized: !!currentProfile?.isTokenized,
+    marketValue: currentProfile?.marketValue || 0
+  }
+}
+```
+
+```typescript
+// src/features/profile/hooks/useUserSearch.ts
+import { useState, useCallback, useEffect } from 'react'
+import { profileService } from '../services/profileService'
+import type { User } from '@entities/user'
+
+interface SearchFilters {
+  location?: string
+  isTokenized?: boolean
+  minReputation?: number
+  hasAvatar?: boolean
+  isVerified?: boolean
+}
+
+export function useUserSearch() {
+  const [query, setQuery] = useState('')
+  const [filters, setFilters] = useState<SearchFilters>({})
+  const [results, setResults] = useState<User[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+
+  const search = useCallback(async (searchQuery?: string, searchFilters?: SearchFilters) => {
+    const finalQuery = searchQuery !== undefined ? searchQuery : query
+    const finalFilters = searchFilters !== undefined ? searchFilters : filters
+
+    if (!finalQuery.trim()) {
+      setResults([])
+      setHasSearched(false)
+      return
+    }
+
+    setIsSearching(true)
+    setError(null)
+
+    try {
+      const searchResults = await profileService.searchUsers(finalQuery, finalFilters)
+      setResults(searchResults)
+      setHasSearched(true)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erro na busca')
+      setResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [query, filters])
+
+  const updateQuery = useCallback((newQuery: string) => {
+    setQuery(newQuery)
+  }, [])
+
+  const updateFilters = useCallback((newFilters: Partial<SearchFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }))
+  }, [])
+
+  const clearSearch = useCallback(() => {
+    setQuery('')
+    setResults([])
+    setError(null)
+    setHasSearched(false)
+  }, [])
+
+  const clearFilters = useCallback(() => {
+    setFilters({})
+  }, [])
+
+  // Auto-search com debounce
+  useEffect(() => {
+    if (!query.trim()) return
+
+    const debounceTimer = setTimeout(() => {
+      search()
+    }, 500)
+
+    return () => clearTimeout(debounceTimer)
+  }, [query, search])
+
+  return {
+    // Estado
+    query,
+    filters,
+    results,
+    isSearching,
+    error,
+    hasSearched,
+    hasResults: results.length > 0,
+    isEmpty: hasSearched && results.length === 0,
+
+    // Ações
+    search,
+    updateQuery,
+    updateFilters,
+    clearSearch,
+    clearFilters,
+
+    // Utilitários
+    resultCount: results.length
+  }
+}
+```
+
+```typescript
+// src/features/profile/hooks/useImageUpload.ts
+import { useState, useCallback } from 'react'
+import { ipfsService } from '@services/ipfs/ipfsService'
+
+interface UploadProgress {
+  loaded: number
+  total: number
+  percentage: number
+}
+
+export function useImageUpload() {
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState<UploadProgress>({ loaded: 0, total: 100, percentage: 0 })
+  const [error, setError] = useState<string | null>(null)
+  const [uploadedURL, setUploadedURL] = useState<string | null>(null)
+
+  const uploadImage = useCallback(async (
+    file: File,
+    options?: {
+      maxWidth?: number
+      maxHeight?: number
+      quality?: number
+    }
+  ) => {
+    // Valida arquivo
+    const validation = ipfsService.validateImageFile(file)
+    if (!validation.isValid) {
+      setError(validation.error || 'Arquivo inválido')
+      return null
+    }
+
+    setUploading(true)
+    setError(null)
+    setProgress({ loaded: 0, total: 100, percentage: 0 })
+
+    try {
+      const hash = await ipfsService.uploadImage(
+        file,
+        options,
+        (uploadProgress) => {
+          setProgress(uploadProgress)
+        }
+      )
+
+      const url = ipfsService.getOptimizedImageURL(hash)
+      setUploadedURL(url)
+      
+      return url
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro no upload'
+      setError(errorMessage)
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }, [])
+
+  const reset = useCallback(() => {
+    setUploading(false)
+    setProgress({ loaded: 0, total: 100, percentage: 0 })
+    setError(null)
+    setUploadedURL(null)
+  }, [])
+
+  return {
+    uploading,
+    progress,
+    error,
+    uploadedURL,
+    uploadImage,
+    reset,
+    hasUploadedImage: !!uploadedURL
+  }
+}
+```
+
+```typescript
+// src/features/profile/hooks/useTokenization.ts
+import { useState, useCallback } from 'react'
+import { tokenizationService } from '../services/tokenizationService'
+import type { UserTokenMetadata } from '@entities/user'
+
+export function useTokenization() {
+  const [tokenizing, setTokenizing] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [tokenData, setTokenData] = useState<{
+    tokenId: string
+    contractAddress: string
+    transactionHash: string
+  } | null>(null)
+
+  const tokenizeProfile = useCallback(async (metadata: UserTokenMetadata) => {
+    setTokenizing(true)
+    setError(null)
+    setProgress(0)
+
+    try {
+      const result = await tokenizationService.tokenizeProfile(
+        metadata,
+        (progressValue) => {
+          setProgress(progressValue)
+        }
+      )
+
+      setTokenData({
+        tokenId: result.tokenId,
+        contractAddress: result.contractAddress,
+        transactionHash: result.transactionHash
+      })
+
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro na tokenização'
+      setError(errorMessage)
+      throw error
+    } finally {
+      setTokenizing(false)
+    }
+  }, [])
+
+  const updateTokenMetadata = useCallback(async (
+    tokenId: string,
+    newMetadata: UserTokenMetadata
+  ) => {
+    setTokenizing(true)
+    setError(null)
+
+    try {
+      const success = await tokenizationService.updateTokenMetadata(tokenId, newMetadata)
+      return success
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro na atualização'
+      setError(errorMessage)
+      return false
+    } finally {
+      setTokenizing(false)
+    }
+  }, [])
+
+  const checkTokenizationEligibility = useCallback((profileData: {
+    name: string
+    bio?: string
+    avatar?: string
+    reputation: { overall: number }
+  }) => {
+    return tokenizationService.canTokenizeProfile(profileData)
+  }, [])
+
+  const generateDefaultMetadata = useCallback((profileData: any) => {
+    return tokenizationService.generateDefaultTokenMetadata(profileData)
+  }, [])
+
+  const reset = useCallback(() => {
+    setTokenizing(false)
+    setProgress(0)
+    setError(null)
+    setTokenData(null)
+  }, [])
+
+  return {
+    tokenizing,
+    progress,
+    error,
+    tokenData,
+    tokenizeProfile,
+    updateTokenMetadata,
+    checkTokenizationEligibility,
+    generateDefaultMetadata,
+    reset,
+    isComplete: !!tokenData
+  }
+}
+```
+
+---
+
+## 🎨 **6. COMPONENTES PRINCIPAIS**
+
+```typescript
+// src/features/profile/components/ProfileEditor.tsx
+import { FC, useState, useEffect } from 'react'
+import { useProfile } from '../hooks/useProfile'
+import { useImageUpload } from '../hooks/useImageUpload'
+import { AvatarUpload } from './AvatarUpload'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface ProfileEditorProps {
+  onSave?: () => void
+  onCancel?: () => void
+}
+
+export const ProfileEditor: FC<ProfileEditorProps> = ({ onSave, onCancel }) => {
+  const { t } = useProfileTranslation()
+  const {
+    profile,
+    isEditing,
+    editingData,
+    hasUnsavedChanges,
+    saveEditing,
+    cancelEditing,
+    updateEditingData,
+    startEditing,
+    isLoading,
+    error
+  } = useProfile()
+
+  const [formData, setFormData] = useState({
+    name: '',
+    bio: '',
+    email: '',
+    phone: '',
+    location: '',
+    website: ''
+  })
+
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (profile && !isEditing) {
+      setFormData({
+        name: profile.name || '',
+        bio: profile.bio || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        location: profile.location || '',
+        website: profile.website || ''
+      })
+    }
+  }, [profile, isEditing])
+
+  useEffect(() => {
+    if (editingData) {
+      setFormData({
+        name: editingData.name || '',
+        bio: editingData.bio || '',
+        email: editingData.email || '',
+        phone: editingData.phone || '',
+        location: editingData.location || '',
+        website: editingData.website || ''
+      })
+    }
+  }, [editingData])
+
+  const handleStartEditing = () => {
+    startEditing(formData)
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    updateEditingData({ [field]: value })
+    
+    // Clear field error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      errors.name = t('nameRequired')
+    } else if (formData.name.length < 2) {
+      errors.name = t('nameMinLength')
+    } else if (formData.name.length > 50) {
+      errors.name = t('nameMaxLength')
+    }
+
+    if (formData.bio && formData.bio.length > 500) {
+      errors.bio = t('bioMaxLength')
+    }
+
+    if (formData.email && !isValidEmail(formData.email)) {
+      errors.email = t('invalidEmail')
+    }
+
+    if (formData.website && !isValidURL(formData.website)) {
+      errors.website = t('invalidWebsite')
+    }
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleSave = async () => {
+    if (!validateForm()) return
+
+    const success = await saveEditing()
+    if (success) {
+      onSave?.()
+    }
+  }
+
+  const handleCancel = () => {
+    cancelEditing()
+    setFormErrors({})
+    onCancel?.()
+  }
+
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
+  const isValidURL = (url: string): boolean => {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {isEditing ? t('editProfile') : t('profile')}
+        </h2>
+        
+        {!isEditing && (
+          <button
+            onClick={handleStartEditing}
+            className="btn-primary"
+          >
+            {t('editProfile')}
+          </button>
+        )}
+      </div>
+
+      {/* Avatar */}
+      <div className="flex justify-center">
+        <AvatarUpload
+          currentAvatar={profile.avatar}
+          disabled={!isEditing}
+          onAvatarChange={(url) => updateEditingData({ avatar: url })}
+        />
+      </div>
+
+      {/* Form */}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('name')} *
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            disabled={!isEditing}
+            className="w-full input-bazari"
+            placeholder={t('enterYourName')}
+            maxLength={50}
+          />
+          {formErrors.name && (
+            <p className="mt-1 text-sm text-error-600">{formErrors.name}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('bio')}
+          </label>
+          <textarea
+            value={formData.bio}
+            onChange={(e) => handleInputChange('bio', e.target.value)}
+            disabled={!isEditing}
+            className="w-full input-bazari h-24 resize-none"
+            placeholder={t('tellAboutYourself')}
+            maxLength={500}
+          />
+          <div className="flex justify-between mt-1">
+            {formErrors.bio && (
+              <p className="text-sm text-error-600">{formErrors.bio}</p>
+            )}
+            <p className="text-xs text-gray-500 ml-auto">
+              {formData.bio.length}/500
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('email')}
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              disabled={!isEditing}
+              className="w-full input-bazari"
+              placeholder={t('yourEmail')}
+            />
+            {formErrors.email && (
+              <p className="mt-1 text-sm text-error-600">{formErrors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('phone')}
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              disabled={!isEditing}
+              className="w-full input-bazari"
+              placeholder={t('yourPhone')}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('location')}
+            </label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => handleInputChange('location', e.target.value)}
+              disabled={!isEditing}
+              className="w-full input-bazari"
+              placeholder={t('yourLocation')}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('website')}
+            </label>
+            <input
+              type="url"
+              value={formData.website}
+              onChange={(e) => handleInputChange('website', e.target.value)}
+              disabled={!isEditing}
+              className="w-full input-bazari"
+              placeholder="https://..."
+            />
+            {formErrors.website && (
+              <p className="mt-1 text-sm text-error-600">{formErrors.website}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-error-50 border border-error-200 rounded-lg p-3">
+          <p className="text-error-700 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Actions */}
+      {isEditing && (
+        <div className="flex space-x-4 pt-4">
+          <button
+            onClick={handleCancel}
+            className="flex-1 btn-secondary"
+            disabled={isLoading}
+          >
+            {t('cancel')}
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isLoading || !hasUnsavedChanges}
+            className="flex-1 btn-primary disabled:opacity-50"
+          >
+            {isLoading ? t('saving') : t('saveChanges')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## ✅ **ETAPA 4 - 50% COMPLETA** 🎯
+
+### 🚀 **Implementado até agora:**
+
+1. **✅ Entidade User Expandida** - Com tokenização e reputação completa
+2. **✅ Serviços IPFS** - Upload, otimização e gerenciamento de arquivos
+3. **✅ Profile Store** - Estado global com Zustand e persistência
+4. **✅ Serviços Especializados** - Profile e Tokenization services
+5. **✅ Hooks Avançados** - useProfile, useUserSearch, useImageUpload, useTokenization
+6. **✅ Componente ProfileEditor** - Editor completo de perfil
+
+### 🔄 **Próximos componentes a implementar:**
+- AvatarUpload, ProfileViewer, TokenizationPanel
+- ReputationDisplay, ProfileStats
+- Páginas de perfil (MyProfile, PublicProfile, EditProfile)
+- Sistema de busca de usuários
+- Traduções do módulo profile
+
+```typescript
+// src/features/profile/components/AvatarUpload.tsx
+import { FC, useRef, useState } from 'react'
+import { useImageUpload } from '../hooks/useImageUpload'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface AvatarUploadProps {
+  currentAvatar?: string
+  disabled?: boolean
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  onAvatarChange?: (url: string) => void
+}
+
+export const AvatarUpload: FC<AvatarUploadProps> = ({
+  currentAvatar,
+  disabled = false,
+  size = 'lg',
+  onAvatarChange
+}) => {
+  const { t } = useProfileTranslation()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { uploading, progress, error, uploadImage, reset } = useImageUpload()
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const sizeClasses = {
+    sm: 'w-16 h-16',
+    md: 'w-24 h-24',
+    lg: 'w-32 h-32',
+    xl: 'w-40 h-40'
+  }
+
+  const handleFileSelect = () => {
+    if (disabled) return
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Show preview immediately
+    const objectUrl = URL.createObjectURL(file)
+    setPreviewUrl(objectUrl)
+
+    try {
+      const url = await uploadImage(file, {
+        maxWidth: 400,
+        maxHeight: 400,
+        quality: 0.8
+      })
+
+      if (url) {
+        onAvatarChange?.(url)
+        // Clean up preview URL
+        URL.revokeObjectURL(objectUrl)
+        setPreviewUrl(null)
+      }
+    } catch (error) {
+      // Revert preview on error
+      URL.revokeObjectURL(objectUrl)
+      setPreviewUrl(null)
+    }
+
+    // Reset input
+    e.target.value = ''
+  }
+
+  const displayImage = previewUrl || currentAvatar
+
+  return (
+    <div className="flex flex-col items-center space-y-4">
+      <div className="relative">
+        <div 
+          className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg ${
+            disabled ? 'cursor-default' : 'cursor-pointer hover:opacity-90 transition-opacity'
+          }`}
+          onClick={handleFileSelect}
+        >
+          {displayImage ? (
+            <img
+              src={displayImage}
+              alt={t('avatar')}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Upload Progress Overlay */}
+        {uploading && (
+          <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <span className="text-white text-xs">{Math.round(progress.percentage)}%</span>
+            </div>
+          </div>
+        )}
+
+        {/* Camera Icon */}
+        {!disabled && !uploading && (
+          <div className="absolute bottom-0 right-0 bg-primary-600 rounded-full p-2 shadow-lg hover:bg-primary-700 transition-colors">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      {/* Upload Instructions */}
+      {!disabled && (
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            {currentAvatar ? t('clickToChangeAvatar') : t('clickToUploadAvatar')}
+          </p>
+          <p className="text-xs text-gray-500">
+            {t('avatarRequirements')}
+          </p>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="text-center">
+          <p className="text-sm text-error-600">{error}</p>
+          <button
+            onClick={reset}
+            className="text-xs text-primary-600 hover:text-primary-500 mt-1"
+          >
+            {t('tryAgain')}
+          </button>
+        </div>
+      )}
+
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+        disabled={disabled || uploading}
+      />
+    </div>
+  )
+}
+```
+
+```typescript
+// src/features/profile/components/ProfileViewer.tsx
+import { FC } from 'react'
+import { useProfile } from '../hooks/useProfile'
+import { ReputationDisplay } from './ReputationDisplay'
+import { ProfileStats } from './ProfileStats'
+import { TokenizationPanel } from './TokenizationPanel'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface ProfileViewerProps {
+  userId?: string
+  showActions?: boolean
+  compact?: boolean
+}
+
+export const ProfileViewer: FC<ProfileViewerProps> = ({
+  userId,
+  showActions = true,
+  compact = false
+}) => {
+  const { t } = useProfileTranslation()
+  const { profile, isLoading, isOwner } = useProfile(userId)
+
+  if (isLoading) {
+    return <ProfileViewerSkeleton compact={compact} />
+  }
+
+  if (!profile) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('profileNotFound')}</h3>
+        <p className="text-gray-600">{t('profileNotFoundDescription')}</p>
+      </div>
+    )
+  }
+
+  if (compact) {
+    return <CompactProfileView profile={profile} showActions={showActions && isOwner} />
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <div className="relative inline-block">
+          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg mx-auto">
+            {profile.avatar ? (
+              <img
+                src={profile.avatar}
+                alt={profile.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100">
+                <span className="text-3xl font-bold text-primary-600">
+                  {profile.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Verification Badge */}
+          {profile.isVerified && (
+            <div className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-1">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+          )}
+
+          {/* Tokenized Badge */}
+          {profile.isTokenized && (
+            <div className="absolute bottom-2 left-2 bg-secondary-500 rounded-full p-1">
+              <svg className="w-4 h-4 text-primary-900" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-2">
+          {profile.name}
+        </h1>
+
+        {profile.bio && (
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {profile.bio}
+          </p>
+        )}
+
+        <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500">
+          {profile.location && (
+            <div className="flex items-center space-x-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>{profile.location}</span>
+            </div>
+          )}
+
+          {profile.website && (
+            <a
+              href={profile.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 hover:text-primary-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>{t('website')}</span>
+            </a>
+          )}
+
+          <div className="flex items-center space-x-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>{t('memberSince', { date: profile.createdAt.toLocaleDateString() })}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Social Stats */}
+      <div className="flex justify-center space-x-8">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-900">{profile.followersCount}</div>
+          <div className="text-sm text-gray-500">{t('followers')}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-900">{profile.followingCount}</div>
+          <div className="text-sm text-gray-500">{t('following')}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-gray-900">{profile.postsCount}</div>
+          <div className="text-sm text-gray-500">{t('posts')}</div>
+        </div>
+      </div>
+
+      {/* Reputation */}
+      <ReputationDisplay reputation={profile.reputation} />
+
+      {/* Tokenization Panel */}
+      {(profile.isTokenized || isOwner) && (
+        <TokenizationPanel 
+          profile={profile} 
+          canEdit={isOwner}
+        />
+      )}
+
+      {/* Stats */}
+      <ProfileStats stats={profile.stats} />
+
+      {/* Badges */}
+      {profile.badges.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('badges')}</h3>
+          <div className="flex flex-wrap gap-3">
+            {profile.badges.filter(badge => badge.isVisible).map(badge => (
+              <div
+                key={badge.id}
+                className="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium"
+                style={{ backgroundColor: badge.color + '20', color: badge.color }}
+              >
+                <span className="mr-2">{badge.icon}</span>
+                {badge.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      {showActions && !isOwner && (
+        <div className="flex space-x-4 pt-4">
+          <button className="flex-1 btn-primary">
+            {t('follow')}
+          </button>
+          <button className="flex-1 btn-secondary">
+            {t('message')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Compact version for cards/lists
+const CompactProfileView: FC<{ profile: User; showActions: boolean }> = ({ profile, showActions }) => {
+  const { t } = useProfileTranslation()
+
+  return (
+    <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+      <div className="relative">
+        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
+          {profile.avatar ? (
+            <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100">
+              <span className="text-lg font-bold text-primary-600">
+                {profile.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {profile.isTokenized && (
+          <div className="absolute -bottom-1 -right-1 bg-secondary-500 rounded-full p-1">
+            <svg className="w-3 h-3 text-primary-900" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center space-x-2">
+          <h3 className="text-lg font-semibold text-gray-900 truncate">{profile.name}</h3>
+          {profile.isVerified && (
+            <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          )}
+        </div>
+        
+        {profile.bio && (
+          <p className="text-sm text-gray-600 line-clamp-2 mt-1">{profile.bio}</p>
+        )}
+        
+        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+          <span>{profile.reputation.overall} {t('reputation')}</span>
+          <span>{profile.followersCount} {t('followers')}</span>
+          {profile.location && <span>{profile.location}</span>}
+        </div>
+      </div>
+
+      {showActions && (
+        <div className="flex flex-col space-y-2">
+          <button className="btn-primary text-sm px-4 py-2">
+            {t('follow')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Loading skeleton
+const ProfileViewerSkeleton: FC<{ compact: boolean }> = ({ compact }) => {
+  if (compact) {
+    return (
+      <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border border-gray-200">
+        <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+        <div className="flex-1 space-y-2">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-32"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+          <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-32 h-32 bg-gray-200 rounded-full animate-pulse mx-auto mb-4"></div>
+        <div className="h-8 bg-gray-200 rounded animate-pulse w-48 mx-auto mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-64 mx-auto"></div>
+      </div>
+      <div className="flex justify-center space-x-8">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="text-center">
+            <div className="h-8 w-12 bg-gray-200 rounded animate-pulse mb-1"></div>
+            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+```typescript
+// src/features/profile/components/ReputationDisplay.tsx
+import { FC } from 'react'
+import type { ReputationScore } from '@entities/user'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface ReputationDisplayProps {
+  reputation: ReputationScore
+  showDetails?: boolean
+  size?: 'sm' | 'md' | 'lg'
+}
+
+export const ReputationDisplay: FC<ReputationDisplayProps> = ({
+  reputation,
+  showDetails = true,
+  size = 'md'
+}) => {
+  const { t } = useProfileTranslation()
+
+  const getReputationColor = (score: number): string => {
+    if (score >= 90) return 'text-green-600 bg-green-100'
+    if (score >= 70) return 'text-blue-600 bg-blue-100'
+    if (score >= 50) return 'text-yellow-600 bg-yellow-100'
+    return 'text-red-600 bg-red-100'
+  }
+
+  const getReputationLabel = (score: number): string => {
+    if (score >= 90) return t('excellent')
+    if (score >= 70) return t('good')
+    if (score >= 50) return t('fair')
+    return t('poor')
+  }
+
+  const reputationCategories = [
+    { key: 'trading', label: t('trading'), score: reputation.trading },
+    { key: 'social', label: t('social'), score: reputation.social },
+    { key: 'community', label: t('community'), score: reputation.community }
+  ]
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('reputation')}</h3>
+        
+        <div className="relative inline-block">
+          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+            {/* Background circle */}
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="#f3f4f6"
+              strokeWidth="8"
+            />
+            {/* Progress circle */}
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke={reputation.overall >= 70 ? '#10b981' : reputation.overall >= 50 ? '#f59e0b' : '#ef4444'}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 40}`}
+              strokeDashoffset={`${2 * Math.PI * 40 * (1 - reputation.overall / 100)}`}
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+          
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{reputation.overall}</div>
+              <div className="text-xs text-gray-500">{t('score')}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getReputationColor(reputation.overall)}`}>
+          {getReputationLabel(reputation.overall)}
+        </div>
+      </div>
+
+      {/* Category Breakdown */}
+      <div className="space-y-4">
+        {reputationCategories.map(category => (
+          <div key={category.key}>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm font-medium text-gray-700">{category.label}</span>
+              <span className="text-sm text-gray-600">{category.score}/100</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-500 ${
+                  category.score >= 70 ? 'bg-green-500' : 
+                  category.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${category.score}%` }}
+              ></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Details */}
+      {showDetails && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900">{reputation.details.totalTransactions}</div>
+              <div className="text-gray-500">{t('transactions')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900">{reputation.details.successfulDeals}</div>
+              <div className="text-gray-500">{t('successfulDeals')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900">{reputation.details.averageRating.toFixed(1)}⭐</div>
+              <div className="text-gray-500">{t('averageRating')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900">{reputation.details.endorsements}</div>
+              <div className="text-gray-500">{t('endorsements')}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+```typescript
+// src/features/profile/components/ProfileStats.tsx
+import { FC } from 'react'
+import type { UserStats } from '@entities/user'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface ProfileStatsProps {
+  stats: UserStats
+  showAll?: boolean
+}
+
+export const ProfileStats: FC<ProfileStatsProps> = ({ stats, showAll = true }) => {
+  const { t } = useProfileTranslation()
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(value)
+  }
+
+  const statItems = [
+    {
+      label: t('totalEarnings'),
+      value: formatCurrency(stats.totalEarnings),
+      icon: '💰',
+      color: 'text-green-600 bg-green-100'
+    },
+    {
+      label: t('totalSpent'),
+      value: formatCurrency(stats.totalSpent),
+      icon: '💸',
+      color: 'text-red-600 bg-red-100'
+    },
+    {
+      label: t('businessesOwned'),
+      value: stats.businessesOwned.toString(),
+      icon: '🏢',
+      color: 'text-blue-600 bg-blue-100'
+    },
+    {
+      label: t('productsListed'),
+      value: stats.productsListed.toString(),
+      icon: '📦',
+      color: 'text-purple-600 bg-purple-100'
+    },
+    {
+      label: t('servicesOffered'),
+      value: stats.servicesOffered.toString(),
+      icon: '🛠️',
+      color: 'text-indigo-600 bg-indigo-100'
+    },
+    {
+      label: t('socialInteractions'),
+      value: stats.socialInteractions.toString(),
+      icon: '💬',
+      color: 'text-pink-600 bg-pink-100'
+    },
+    {
+      label: t('daoParticipation'),
+      value: stats.daoParticipation.toString(),
+      icon: '🗳️',
+      color: 'text-orange-600 bg-orange-100'
+    }
+  ]
+
+  const displayStats = showAll ? statItems : statItems.slice(0, 4)
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('activityStats')}</h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {displayStats.map((stat, index) => (
+          <div key={index} className="text-center p-4 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
+            <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${stat.color}`}>
+              <span className="text-xl">{stat.icon}</span>
+            </div>
+            <div className="text-xl font-bold text-gray-900 mb-1">{stat.value}</div>
+            <div className="text-sm text-gray-600">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {!showAll && statItems.length > 4 && (
+        <div className="text-center mt-4">
+          <button className="text-primary-600 hover:text-primary-500 text-sm font-medium">
+            {t('viewAllStats')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+```typescript
+// src/features/profile/components/TokenizationPanel.tsx
+import { FC, useState } from 'react'
+import { useTokenization } from '../hooks/useTokenization'
+import type { User, UserTokenMetadata } from '@entities/user'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface TokenizationPanelProps {
+  profile: User
+  canEdit?: boolean
+}
+
+export const TokenizationPanel: FC<TokenizationPanelProps> = ({ profile, canEdit = false }) => {
+  const { t } = useProfileTranslation()
+  const {
+    tokenizing,
+    progress,
+    error,
+    tokenizeProfile,
+    checkTokenizationEligibility,
+    generateDefaultMetadata,
+    reset
+  } = useTokenization()
+
+  const [showTokenizeForm, setShowTokenizeForm] = useState(false)
+
+  const handleTokenize = async () => {
+    if (!profile || profile.isTokenized) return
+
+    try {
+      const metadata = generateDefaultMetadata(profile)
+      await tokenizeProfile(metadata)
+      setShowTokenizeForm(false)
+    } catch (error) {
+      // Error já tratado no hook
+    }
+  }
+
+  const eligibility = checkTokenizationEligibility({
+    name: profile.name,
+    bio: profile.bio,
+    avatar: profile.avatar,
+    reputation: profile.reputation
+  })
+
+  if (profile.isTokenized) {
+    return (
+      <div className="bg-gradient-to-r from-secondary-50 to-primary-50 rounded-lg border border-secondary-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <span className="mr-2">🪙</span>
+            {t('profileTokenized')}
+          </h3>
+          <div className="flex items-center space-x-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
+              {t('tokenized')}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">{t('tokenInfo')}</h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-gray-600">{t('tokenId')}:</span>
+                <span className="ml-2 font-mono text-gray-900">{profile.tokenId}</span>
+              </div>
+              {profile.marketValue && (
+                <div>
+                  <span className="text-gray-600">{t('marketValue')}:</span>
+                  <span className="ml-2 font-semibold text-green-600">
+                    {profile.marketValue} BZR
+                  </span>
+                </div>
+              )}
+              {profile.tokenMetadata && (
+                <div>
+                  <span className="text-gray-600">{t('lastUpdated')}:</span>
+                  <span className="ml-2 text-gray-900">
+                    {profile.tokenMetadata.lastUpdated.toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">{t('tokenBenefits')}</h4>
+            <ul className="space-y-1 text-sm text-gray-600">
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                {t('tradableAsset')}
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                {t('verifiedIdentity')}
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                {t('marketplaceBonus')}
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-500 mr-2">✓</span>
+                {t('daoVotingPower')}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {canEdit && (
+          <div className="mt-6 pt-4 border-t border-secondary-200">
+            <div className="flex space-x-4">
+              <button className="btn-secondary text-sm">
+                {t('viewNFT')}
+              </button>
+              <button className="btn-secondary text-sm">
+                {t('updateMetadata')}
+              </button>
+              <button className="btn-secondary text-sm">
+                {t('transferToken')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (!canEdit) {
+    return (
+      <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 text-center">
+        <div className="text-gray-400 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('profileNotTokenized')}</h3>
+        <p className="text-gray-600">{t('profileNotTokenizedDescription')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="text-center mb-6">
+        <div className="text-6xl mb-4">🪙</div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('tokenizeProfile')}</h3>
+        <p className="text-gray-600 max-w-md mx-auto">
+          {t('tokenizeProfileDescription')}
+        </p>
+      </div>
+
+      {!eligibility.canTokenize ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                {t('tokenizationRequirements')}
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>{eligibility.reason}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Benefits */}
+          <div className="bg-primary-50 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-3">{t('tokenizationBenefits')}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500">✓</span>
+                <span>{t('becomesTradableAsset')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500">✓</span>
+                <span>{t('verifiedIdentityBadge')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500">✓</span>
+                <span>{t('marketplaceBonuses')}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-green-500">✓</span>
+                <span>{t('enhancedDaoRights')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress */}
+          {tokenizing && (
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-900">{t('tokenizing')}</span>
+                <span className="text-sm text-blue-600">{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                {progress < 30 ? t('uploadingMetadata') : 
+                 progress < 80 ? t('creatingNFT') : t('finalizingTokenization')}
+              </p>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="bg-error-50 border border-error-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-error-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-error-800">{t('tokenizationError')}</h3>
+                  <div className="mt-2 text-sm text-error-700">
+                    <p>{error}</p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      onClick={reset}
+                      className="text-sm bg-error-100 text-error-800 px-3 py-1 rounded hover:bg-error-200 transition-colors"
+                    >
+                      {t('tryAgain')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action */}
+          <div className="text-center">
+            <button
+              onClick={handleTokenize}
+              disabled={tokenizing}
+              className="btn-primary disabled:opacity-50"
+            >
+              {tokenizing ? t('tokenizing') : t('tokenizeMyProfile')}
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              {t('tokenizationDisclaimer')}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## 📄 **7. PÁGINAS DE PERFIL**
+
+```typescript
+// src/pages/profile/MyProfilePage.tsx
+import { FC, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ProfileViewer } from '@features/profile/components/ProfileViewer'
+import { useProfile } from '@features/profile/hooks/useProfile'
+import { useAuth } from '@features/auth/hooks/useAuth'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+export const MyProfilePage: FC = () => {
+  const { t } = useProfileTranslation()
+  const navigate = useNavigate()
+  const { isAuthenticated, currentAccount } = useAuth()
+  const { loadProfile } = useProfile()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth/login')
+      return
+    }
+
+    if (currentAccount) {
+      loadProfile(currentAccount.id)
+    }
+  }, [isAuthenticated, currentAccount, navigate, loadProfile])
+
+  const handleEditProfile = () => {
+    navigate('/profile/edit')
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">{t('myProfile')}</h1>
+        <button
+          onClick={handleEditProfile}
+          className="btn-primary"
+        >
+          {t('editProfile')}
+        </button>
+      </div>
+
+      <ProfileViewer userId={currentAccount?.id} showActions={false} />
+    </div>
+  )
+}
+```
+
+```typescript
+// src/pages/profile/EditProfilePage.tsx
+import { FC, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ProfileEditor } from '@features/profile/components/ProfileEditor'
+import { useAuth } from '@features/auth/hooks/useAuth'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+export const EditProfilePage: FC = () => {
+  const { t } = useProfileTranslation()
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth/login')
+    }
+  }, [isAuthenticated, navigate])
+
+  const handleSave = () => {
+    navigate('/profile')
+  }
+
+  const handleCancel = () => {
+    navigate('/profile')
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <button
+          onClick={handleCancel}
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <svg className="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {t('backToProfile')}
+        </button>
+        <h1 className="text-3xl font-bold text-gray-900">{t('editProfile')}</h1>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-lg">
+        <ProfileEditor onSave={handleSave} onCancel={handleCancel} />
+      </div>
+    </div>
+  )
+}
+```
+
+```typescript
+// src/pages/profile/PublicProfilePage.tsx
+import { FC, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ProfileViewer } from '@features/profile/components/ProfileViewer'
+import { useProfile } from '@features/profile/hooks/useProfile'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+export const PublicProfilePage: FC = () => {
+  const { t } = useProfileTranslation()
+  const { userId } = useParams<{ userId: string }>()
+  const navigate = useNavigate()
+  const { profile, loadProfile, isLoading, error } = useProfile(userId)
+
+  useEffect(() => {
+    if (userId) {
+      loadProfile()
+    }
+  }, [userId, loadProfile])
+
+  if (!userId) {
+    navigate('/search/users')
+    return null
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('profileError')}</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/search/users')}
+            className="btn-primary"
+          >
+            {t('searchOtherUsers')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <svg className="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {t('back')}
+        </button>
+      </div>
+
+      <ProfileViewer userId={userId} showActions={true} />
+    </div>
+  )
+}
+```
+
+```typescript
+// src/pages/profile/SearchUsersPage.tsx
+import { FC, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { UserSearch } from '@features/search/components/UserSearch'
+import { SearchResults } from '@features/search/components/SearchResults'
+import { useUserSearch } from '@features/profile/hooks/useUserSearch'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+export const SearchUsersPage: FC = () => {
+  const { t } = useProfileTranslation()
+  const navigate = useNavigate()
+  const {
+    query,
+    filters,
+    results,
+    isSearching,
+    hasSearched,
+    hasResults,
+    isEmpty,
+    updateQuery,
+    updateFilters,
+    clearSearch,
+    search
+  } = useUserSearch()
+
+  const handleUserSelect = (userId: string) => {
+    navigate(`/profile/${userId}`)
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('searchUsers')}</h1>
+        <p className="text-gray-600">{t('searchUsersDescription')}</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Search Panel */}
+        <div className="lg:col-span-1">
+          <UserSearch
+            query={query}
+            filters={filters}
+            onQueryChange={updateQuery}
+            onFiltersChange={updateFilters}
+            onSearch={search}
+            onClear={clearSearch}
+            isSearching={isSearching}
+          />
+        </div>
+
+        {/* Results */}
+        <div className="lg:col-span-3">
+          <SearchResults
+            results={results}
+            isLoading={isSearching}
+            hasSearched={hasSearched}
+            hasResults={hasResults}
+            isEmpty={isEmpty}
+            onUserSelect={handleUserSelect}
+            query={query}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## 🔍 **8. COMPONENTES DE BUSCA**
+
+```typescript
+// src/features/search/components/UserSearch.tsx
+import { FC } from 'react'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface SearchFilters {
+  location?: string
+  isTokenized?: boolean
+  minReputation?: number
+  hasAvatar?: boolean
+  isVerified?: boolean
+}
+
+interface UserSearchProps {
+  query: string
+  filters: SearchFilters
+  onQueryChange: (query: string) => void
+  onFiltersChange: (filters: Partial<SearchFilters>) => void
+  onSearch: () => void
+  onClear: () => void
+  isSearching: boolean
+}
+
+export const UserSearch: FC<UserSearchProps> = ({
+  query,
+  filters,
+  onQueryChange,
+  onFiltersChange,
+  onSearch,
+  onClear,
+  isSearching
+}) => {
+  const { t } = useProfileTranslation()
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('searchFilters')}</h2>
+
+      {/* Search Input */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('searchQuery')}
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            className="w-full input-bazari pl-10"
+            placeholder={t('searchPlaceholder')}
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Location Filter */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('location')}
+        </label>
+        <input
+          type="text"
+          value={filters.location || ''}
+          onChange={(e) => onFiltersChange({ location: e.target.value || undefined })}
+          className="w-full input-bazari"
+          placeholder={t('anyLocation')}
+        />
+      </div>
+
+      {/* Reputation Filter */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('minReputation')}
+        </label>
+        <select
+          value={filters.minReputation || ''}
+          onChange={(e) => onFiltersChange({ 
+            minReputation: e.target.value ? parseInt(e.target.value) : undefined 
+          })}
+          className="w-full input-bazari"
+        >
+          <option value="">{t('anyReputation')}</option>
+          <option value="90">{t('excellent')} (90+)</option>
+          <option value="70">{t('good')} (70+)</option>
+          <option value="50">{t('fair')} (50+)</option>
+        </select>
+      </div>
+
+      {/* Boolean Filters */}
+      <div className="space-y-3 mb-6">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={filters.isTokenized || false}
+            onChange={(e) => onFiltersChange({ isTokenized: e.target.checked || undefined })}
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          />
+          <span className="ml-2 text-sm text-gray-700">{t('tokenizedOnly')}</span>
+        </label>
+
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={filters.hasAvatar || false}
+            onChange={(e) => onFiltersChange({ hasAvatar: e.target.checked || undefined })}
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          />
+          <span className="ml-2 text-sm text-gray-700">{t('withAvatar')}</span>
+        </label>
+
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={filters.isVerified || false}
+            onChange={(e) => onFiltersChange({ isVerified: e.target.checked || undefined })}
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+          />
+          <span className="ml-2 text-sm text-gray-700">{t('verifiedOnly')}</span>
+        </label>
+      </div>
+
+      {/* Actions */}
+      <div className="space-y-2">
+        <button
+          onClick={onSearch}
+          disabled={isSearching || !query.trim()}
+          className="w-full btn-primary disabled:opacity-50"
+        >
+          {isSearching ? t('searching') : t('search')}
+        </button>
+        
+        <button
+          onClick={onClear}
+          className="w-full btn-secondary"
+        >
+          {t('clearFilters')}
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+```typescript
+// src/features/search/components/SearchResults.tsx
+import { FC } from 'react'
+import { ProfileViewer } from '@features/profile/components/ProfileViewer'
+import type { User } from '@entities/user'
+import { useProfileTranslation } from '@shared/hooks/useTranslation'
+
+interface SearchResultsProps {
+  results: User[]
+  isLoading: boolean
+  hasSearched: boolean
+  hasResults: boolean
+  isEmpty: boolean
+  onUserSelect: (userId: string) => void
+  query: string
+}
+
+export const SearchResults: FC<SearchResultsProps> = ({
+  results,
+  isLoading,
+  hasSearched,
+  hasResults,
+  isEmpty,
+  onUserSelect,
+  query
+}) => {
+  const { t } = useProfileTranslation()
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-5 bg-gray-200 rounded animate-pulse w-32"></div>
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-48"></div>
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (!hasSearched) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('searchUsers')}</h3>
+        <p className="text-gray-600">{t('enterSearchTerm')}</p>
+      </div>
+    )
+  }
+
+  if (isEmpty) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noUsersFound')}</h3>
+        <p className="text-gray-600">
+          {t('noUsersFoundFor')} <strong>"{query}"</strong>
+        </p>
+        <p className="text-gray-500 text-sm mt-2">{t('tryDifferentSearch')}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-900">
+          {t('searchResults')} ({results.length})
+        </h2>
+        <div className="text-sm text-gray-600">
+          {t('resultsFor')} <strong>"{query}"</strong>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {results.map(user => (
+          <div
+            key={user.id}
+            className="cursor-pointer transition-transform hover:scale-[1.02]"
+            onClick={() => onUserSelect(user.id)}
+          >
+            <ProfileViewer userId={user.id} showActions={false} compact={true} />
+          </div>
+        ))}
+      </div>
+
+      {results.length >= 20 && (
+        <div className="text-center py-4">
+          <p className="text-sm text-gray-500">{t('showingFirst20Results')}</p>
+          <button className="text-primary-600 hover:text-primary-500 text-sm font-medium mt-2">
+            {t('loadMoreResults')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## 🛣️ **10. ROTAS DE PERFIL**
+
+```typescript
+// src/app/routes/profileRoutes.tsx
+import { lazy } from 'react'
+import { RouteObject } from 'react-router-dom'
+import { AuthGuard } from '@shared/guards/AuthGuard'
+
+// Lazy load das páginas
+const MyProfilePage = lazy(() => import('@pages/profile/MyProfilePage').then(m => ({ default: m.MyProfilePage })))
+const EditProfilePage = lazy(() => import('@pages/profile
+
+---

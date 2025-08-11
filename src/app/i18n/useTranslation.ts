@@ -154,6 +154,8 @@ export const useHomeTranslation = () => useModuleTranslation('home')
 export const useLanguageTranslation = () => useModuleTranslation('language')
 export const useErrorsTranslation = () => useModuleTranslation('errors')
 export const useNavigationTranslation = () => useModuleTranslation('navigation')
+export const useProfileTranslation = () => useModuleTranslation('profile')
+
 
 /**
  * Hook para detectar mudanças de idioma

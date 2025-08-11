@@ -1,148 +1,139 @@
+import { createBrowserRouter } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useTranslation } from '@app/i18n/useTranslation'
+import { Layout } from '@shared/components/Layout'
+import { AuthGuard } from '@shared/guards/AuthGuard'
+import { RouteGuard } from '@shared/guards/RouteGuard'
 
-// Páginas carregadas de forma lazy para otimização
-const HomePage = lazy(() => import('@pages/Home'))
-const NotFoundPage = lazy(() => import('@pages/NotFound'))
-const ComponentShowcase = lazy(() => import('@pages/ComponentShowcase'))
+// Lazy loading das páginas
+const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
+const NotFoundPage = lazy(() => import('@pages/NotFound').then(m => ({ default: m.default })))
 
-/**
- * Componente de Loading para Suspense
- */
-const PageLoader = () => {
-  const { t } = useTranslation('common')
-  
-  return (
-    <div className='min-h-screen flex items-center justify-center bg-light-100 dark:bg-dark-900'>
-      <div className='text-center'>
-        <div className='w-12 h-12 mx-auto mb-4 border-4 border-primary-900 border-t-transparent rounded-full animate-spin' />
-        <p className='text-gray-600 dark:text-gray-400'>{t('loading')}</p>
-      </div>
-    </div>
-  )
-}
+// Auth pages
+const LoginPage = lazy(() => import('@pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('@pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const ImportAccountPage = lazy(() => import('@pages/auth/ImportAccountPage').then(m => ({ default: m.ImportAccountPage })))
+const RecoveryPage = lazy(() => import('@pages/auth/RecoveryPage').then(m => ({ default: m.RecoveryPage })))
 
-/**
- * Rota protegida - verificará autenticação nas próximas etapas
- * Por enquanto apenas renderiza o componente
- */
-interface ProtectedRouteProps {
-  children: React.ReactNode
-}
+// Profile pages
+const MyProfilePage = lazy(() => import('@pages/profile/MyProfilePage').then(m => ({ default: m.MyProfilePage })))
+const EditProfilePage = lazy(() => import('@pages/profile/EditProfilePage').then(m => ({ default: m.EditProfilePage })))
+const PublicProfilePage = lazy(() => import('@pages/profile/PublicProfilePage').then(m => ({ default: m.PublicProfilePage })))
+const SearchUsersPage = lazy(() => import('@pages/profile/SearchUsersPage').then(m => ({ default: m.SearchUsersPage })))
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  // TODO: Implementar verificação de autenticação na ETAPA 3
-  // const { isAuthenticated } = useAuth()
-  // if (!isAuthenticated) return <Navigate to="/auth/login" replace />
-  
-  return <>{children}</>
-}
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+  </div>
+)
 
-/**
- * Rota pública - redireciona se já autenticado
- */
-interface PublicRouteProps {
-  children: React.ReactNode
-}
-
-const PublicRoute = ({ children }: PublicRouteProps) => {
-  // TODO: Implementar verificação de autenticação na ETAPA 3
-  // const { isAuthenticated } = useAuth()
-  // if (isAuthenticated) return <Navigate to="/dashboard" replace />
-  
-  return <>{children}</>
-}
-
-/**
- * Configuração principal de rotas da aplicação
- */
-export const AppRoutes = () => {
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Rota raiz - redireciona para home */}
-        <Route path='/' element={<Navigate to='/home' replace />} />
-        
-        {/* Página inicial */}
-        <Route
-          path='/home'
-          element={
-            <PublicRoute>
-              <HomePage />
-            </PublicRoute>
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      // Rota raiz redireciona para home
+      {
+        index: true,
+        element: <HomePage />
+      },
+      
+      // Rotas de autenticação (SEM Layout)
+      {
+        path: 'auth',
+        children: [
+          {
+            path: 'login',
+            element: (
+              <RouteGuard requireNoAuth fallbackNoAuth="/profile">
+                <Suspense fallback={<PageLoader />}>
+                  <LoginPage />
+                </Suspense>
+              </RouteGuard>
+            )
+          },
+          {
+            path: 'register',
+            element: (
+              <RouteGuard requireNoAuth fallbackNoAuth="/profile">
+                <Suspense fallback={<PageLoader />}>
+                  <RegisterPage />
+                </Suspense>
+              </RouteGuard>
+            )
+          },
+          {
+            path: 'import',
+            element: (
+              <RouteGuard requireNoAuth fallbackNoAuth="/profile">
+                <Suspense fallback={<PageLoader />}>
+                  <ImportAccountPage />
+                </Suspense>
+              </RouteGuard>
+            )
+          },
+          {
+            path: 'recovery',
+            element: (
+              <RouteGuard requireNoAuth fallbackNoAuth="/profile">
+                <Suspense fallback={<PageLoader />}>
+                  <RecoveryPage />
+                </Suspense>
+              </RouteGuard>
+            )
           }
-        />
-
-        {/* Showcase dos componentes */}
-        <Route
-          path='/showcase'
-          element={
-            <PublicRoute>
-              <ComponentShowcase />
-            </PublicRoute>
+        ]
+      },
+      
+      // Rotas de perfil (COM Layout)
+      {
+        path: 'profile',
+        children: [
+          {
+            index: true,
+            element: (
+              <AuthGuard>
+                <Suspense fallback={<PageLoader />}>
+                  <MyProfilePage />
+                </Suspense>
+              </AuthGuard>
+            )
+          },
+          {
+            path: 'edit',
+            element: (
+              <AuthGuard>
+                <Suspense fallback={<PageLoader />}>
+                  <EditProfilePage />
+                </Suspense>
+              </AuthGuard>
+            )
+          },
+          {
+            path: ':userId',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <PublicProfilePage />
+              </Suspense>
+            )
           }
-        />
-
-        {/* Rotas de autenticação - serão implementadas na ETAPA 3 */}
-        {/* 
-        <Route path='/auth/*' element={
-          <PublicRoute>
-            <Suspense fallback={<PageLoader />}>
-              <AuthRoutes />
-            </Suspense>
-          </PublicRoute>
-        } />
-        */}
-
-        {/* Rotas protegidas - serão implementadas nas próximas etapas */}
-        {/*
-        <Route path='/dashboard' element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/profile/*' element={
-          <ProtectedRoute>
-            <ProfileRoutes />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/marketplace/*' element={
-          <ProtectedRoute>
-            <MarketplaceRoutes />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/wallet/*' element={
-          <ProtectedRoute>
-            <WalletRoutes />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/dao/*' element={
-          <ProtectedRoute>
-            <DaoRoutes />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/social/*' element={
-          <ProtectedRoute>
-            <SocialRoutes />
-          </ProtectedRoute>
-        } />
-        
-        <Route path='/work/*' element={
-          <ProtectedRoute>
-            <WorkRoutes />
-          </ProtectedRoute>
-        } />
-        */}
-
-        {/* Página 404 - deve ser a última rota */}
-        <Route path='*' element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
-  )
-}
+        ]
+      },
+      
+      // Rota de busca
+      {
+        path: 'search/users',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <SearchUsersPage />
+          </Suspense>
+        )
+      },
+      
+      // Página 404
+      {
+        path: '*',
+        element: <NotFoundPage />
+      }
+    ]
+  }
+])
