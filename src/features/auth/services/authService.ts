@@ -1,5 +1,3 @@
-
-// BEGIN ETAPA3-AUTH
 import { nanoid } from 'nanoid'
 import type { Account, AuthCredentials } from '@entities/account'
 import { cryptoService } from './cryptoService'
@@ -7,6 +5,7 @@ import { walletService } from './walletService'
 
 class AuthService {
   async createAccount(credentials: AuthCredentials, seedPhrase: string): Promise<Account> {
+    // Validações
     if (credentials.password !== credentials.confirmPassword) {
       throw new Error('Senhas não coincidem')
     }
@@ -14,10 +13,12 @@ class AuthService {
       throw new Error('Senha deve ter pelo menos 8 caracteres')
     }
 
+    // Gerar chaves
     const walletKeys = await walletService.generateKeysFromSeed(seedPhrase)
     const encryptedPrivateKey = await cryptoService.encrypt(walletKeys.privateKey, credentials.password)
     const seedPhraseHash = await cryptoService.hash(seedPhrase)
 
+    // Criar conta
     const account: Account = {
       id: nanoid(),
       address: walletKeys.address,
@@ -25,11 +26,13 @@ class AuthService {
       encryptedPrivateKey,
       seedPhraseHash,
       derivationPath: "//0",
-      name: 'Minha Conta',
+      name: credentials.name || 'Minha Conta',
       isDefault: true,
       createdAt: new Date(),
       lastAccessAt: new Date()
     }
+    
+    console.log('✅ Conta criada com sucesso:', account.name, account.address)
     return account
   }
 
@@ -37,6 +40,7 @@ class AuthService {
     if (!this.validateSeedPhrase(seedPhrase)) {
       throw new Error('Seed phrase inválida')
     }
+    
     const walletKeys = await walletService.generateKeysFromSeed(seedPhrase)
     const encryptedPrivateKey = await cryptoService.encrypt(walletKeys.privateKey, password)
     const seedPhraseHash = await cryptoService.hash(seedPhrase)
@@ -84,6 +88,5 @@ class AuthService {
   }
 }
 
+// ✅ VERIFICAR se está exportando corretamente
 export const authService = new AuthService()
-// END ETAPA3-AUTH
-

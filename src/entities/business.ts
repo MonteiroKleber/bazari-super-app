@@ -1,71 +1,93 @@
 export interface Business {
   id: string
-  ownerId: string
   name: string
   description: string
+  ownerAddress: string
   category: BusinessCategory
-  subcategories: string[]
-  images: string[]
-  coverImage?: string
-  location?: BusinessLocation
-  contact: BusinessContact
+  subcategory?: string
+  
+  // Informações básicas
+  email?: string
+  phone?: string
+  website?: string
+  
+  // Localização
+  address: {
+    street: string
+    city: string
+    state: string
+    country: string
+    zipCode: string
+    coordinates?: {
+      lat: number
+      lng: number
+    }
+  }
+  
+  // Mídia
+  logoUrl?: string
+  logoCid?: string
+  bannerUrl?: string
+  bannerCid?: string
+  images?: string[]
   
   // Tokenização
   isTokenized: boolean
   tokenId?: string
-  nftMetadata?: NFTMetadata
+  tokenContract?: string
   
   // Métricas
   rating: number
-  reviewsCount: number
-  salesCount: number
-  revenue: number
+  reviewCount: number
+  totalSales: number
+  verificationLevel: 'none' | 'basic' | 'verified' | 'premium'
   
   // Status
-  status: 'active' | 'inactive' | 'suspended'
-  verified: boolean
+  isActive: boolean
+  isVerified: boolean
+  isFeatured: boolean
+  
+  // Social
+  followers: number
+  socialLinks?: {
+    instagram?: string
+    facebook?: string
+    twitter?: string
+    linkedin?: string
+  }
+  
+  // Horários
+  businessHours?: {
+    [key: string]: {
+      open: string
+      close: string
+      closed: boolean
+    }
+  }
+  
+  // Metadata
+  tags: string[]
   createdAt: Date
   updatedAt: Date
 }
 
 export interface BusinessCategory {
-  level1: string
-  level2: string
-  level3?: string
-  level4?: string
-}
-
-export interface BusinessLocation {
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  country: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-}
-
-export interface BusinessContact {
-  email?: string
-  phone?: string
-  whatsapp?: string
-  website?: string
-  socialMedia?: {
-    instagram?: string
-    facebook?: string
-    twitter?: string
-  }
-}
-
-export interface NFTMetadata {
+  id: string
   name: string
-  description: string
-  image: string
-  attributes: Array<{
-    trait_type: string
-    value: string | number
+  level: number
+  parent?: string
+  children?: string[]
+  icon?: string
+  description?: string
+}
+
+export interface BusinessStats {
+  totalBusinesses: number
+  verifiedBusinesses: number
+  tokenizedBusinesses: number
+  categoriesWithBusinesses: number
+  topCategories: Array<{
+    category: string
+    count: number
   }>
-  external_url?: string
 }

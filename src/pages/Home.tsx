@@ -1,7 +1,8 @@
-import React from "react";
+import React, { startTransition } from "react"; // ✅ Adicionar startTransition
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@features/auth/hooks/useAuth";
 import { useCommonTranslation } from "@app/i18n/useTranslation";
+
 
 const Home = () => {
   const navigate = useNavigate();
@@ -9,15 +10,21 @@ const Home = () => {
   const { t } = useCommonTranslation();
 
   const handleGetStarted = () => {
-    if (isAuthenticated) {
-      navigate("/profile");
-    } else {
-      navigate("/auth/register");
-    }
+    // ✅ Envolver navegação com startTransition
+    startTransition(() => {
+      if (isAuthenticated) {
+        navigate("/profile");
+      } else {
+        navigate("/auth/register");
+      }
+    });
   };
 
   const handleLogin = () => {
-    navigate("/auth/login");
+    // ✅ Envolver navegação com startTransition
+    startTransition(() => {
+      navigate("/auth/login");
+    });
   };
 
   return (
@@ -35,35 +42,36 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Auth Buttons */}
-          <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-white">Olá, {user?.name}</span>
-                <Link
-                  to="/profile"
-                  className="bg-white text-primary-900 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors"
-                >
-                  Meu Perfil
-                </Link>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleLogin}
-                  className="text-white border border-white px-4 py-2 rounded-lg hover:bg-white hover:text-primary-900 transition-colors"
-                >
-                  Entrar
-                </button>
-                <button
-                  onClick={handleGetStarted}
-                  className="bg-secondary-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-secondary-600 transition-colors"
-                >
-                  Começar
-                </button>
-              </div>
-            )}
+          {/* Botões com navegação corrigida */}
+      <div className="flex items-center space-x-4">
+        {isAuthenticated ? (
+          <div className="flex items-center space-x-3">
+            <span className="text-white">Olá, {user?.name || "Usuário"}</span>
+            <button
+              onClick={() => startTransition(() => navigate("/profile"))}
+              className="bg-white text-primary-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Meu Perfil
+            </button>
           </div>
+        ) : (
+          <>
+            <button
+              onClick={handleLogin}
+              className="text-white border border-white px-4 py-2 rounded-lg hover:bg-white hover:text-primary-900 transition-colors"
+            >
+              Entrar
+            </button>
+            <button
+              onClick={handleGetStarted}
+              className="bg-secondary-500 text-white px-4 py-2 rounded-lg hover:bg-secondary-600 transition-colors"
+            >
+              Começar
+            </button>
+          </>
+        )}
+      </div>
+
         </header>
 
         {/* Hero Section */}

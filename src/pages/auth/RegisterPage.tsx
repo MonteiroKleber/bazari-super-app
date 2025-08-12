@@ -1,6 +1,4 @@
-
-// BEGIN ETAPA3-AUTH
-import { FC, useState } from 'react'
+import { FC, useState, startTransition } from 'react' // ✅ ADICIONAR startTransition
 import { useNavigate } from 'react-router-dom'
 import { RegisterForm } from '@features/auth/components/RegisterForm'
 import { SeedPhraseConfirmation } from '@features/auth/components/SeedPhraseConfirmation'
@@ -13,6 +11,20 @@ type RegisterStep = 'form' | 'seedPhrase' | 'confirmation' | 'success'
 export const RegisterPage: FC = () => {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState<RegisterStep>('form')
+
+  const handleBackToLogin = () => {
+    // ✅ ENVOLVER com startTransition
+    startTransition(() => {
+      navigate('/auth/login')
+    })
+  }
+
+  const handleSuccess = () => {
+    // ✅ ENVOLVER com startTransition
+    startTransition(() => {
+      navigate('/profile')
+    })
+  }
 
   return (
     <AuthLayout
@@ -29,29 +41,37 @@ export const RegisterPage: FC = () => {
         'Tudo certo! Redirecionando...'
       }
       showBackButton={currentStep !== 'form'}
-      onBack={currentStep === 'confirmation' ? () => setCurrentStep('seedPhrase') : undefined}
+      onBack={currentStep === 'confirmation' ? 
+        () => setCurrentStep('seedPhrase') : 
+        currentStep === 'seedPhrase' ? 
+        () => setCurrentStep('form') : 
+        undefined
+      }
     >
       {currentStep === 'form' && (
         <RegisterForm
-          onComplete={() => setCurrentStep('seedPhrase')}
-          onBackToLogin={() => navigate('/auth/login')}
+          onNext={() => setCurrentStep('seedPhrase')}
+          onBackToLogin={handleBackToLogin} // ✅ Com startTransition
         />
       )}
+      
       {currentStep === 'seedPhrase' && (
-        <SeedPhraseDisplay onContinue={() => setCurrentStep('confirmation')} />
+        <SeedPhraseDisplay
+          onNext={() => setCurrentStep('confirmation')}
+          onBack={() => setCurrentStep('form')}
+        />
       )}
+      
       {currentStep === 'confirmation' && (
         <SeedPhraseConfirmation
-          onConfirm={() => {
-            setCurrentStep('success')
-            setTimeout(() => navigate('/dashboard'), 2000)
-          }}
+          onSuccess={() => setCurrentStep('success')}
           onBack={() => setCurrentStep('seedPhrase')}
         />
       )}
-      {currentStep === 'success' && <RegistrationSuccess />}
+      
+      {currentStep === 'success' && (
+        <RegistrationSuccess onContinue={handleSuccess} /> // ✅ Com startTransition
+      )}
     </AuthLayout>
   )
 }
-// END ETAPA3-AUTH
-

@@ -1,4 +1,3 @@
-// src/features/auth/store/authStore.ts
 import { create } from 'zustand'
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware'
 import type { Account, AuthSession, AuthCredentials } from '@entities/account'
@@ -24,7 +23,6 @@ function createTTLStorage(ttlMs = ONE_DAY_MS): StateStorage {
       }
     },
     setItem: (name: string, value: string) => {
-      // sempre renova o TTL quando gravar
       localStorage.setItem(name, JSON.stringify({ v: JSON.parse(value), t: Date.now() }))
     },
     removeItem: (name: string) => localStorage.removeItem(name),
@@ -66,7 +64,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (account, password) => {
         set({ isLoading: true, error: null })
         try {
-          const authService = await import('../services/authService')
+          // ✅ CORREÇÃO: Import com destructuring
+          const { authService } = await import('../services/authService')
           const isValid = await authService.validateAccountPassword(account, password)
           if (!isValid) throw new Error('Senha incorreta')
 
@@ -108,7 +107,8 @@ export const useAuthStore = create<AuthState>()(
       register: async (credentials, seedPhrase) => {
         set({ isLoading: true, error: null })
         try {
-          const authService = await import('../services/authService')
+          // ✅ CORREÇÃO: Import com destructuring - AQUI ESTAVA O ERRO!
+          const { authService } = await import('../services/authService')
           const account = await authService.createAccount(credentials, seedPhrase)
           set((state) => ({
             accounts: [...state.accounts, account],
@@ -127,7 +127,8 @@ export const useAuthStore = create<AuthState>()(
       importAccount: async (seedPhrase, password, name = 'Conta Importada') => {
         set({ isLoading: true, error: null })
         try {
-          const authService = await import('../services/authService')
+          // ✅ CORREÇÃO: Import com destructuring
+          const { authService } = await import('../services/authService')
           const account = await authService.importAccount(seedPhrase, password, name)
           set((state) => ({
             accounts: [...state.accounts, account],
@@ -190,10 +191,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bazari-auth',
-      storage: createJSONStorage(() => createTTLStorage()), // <— TTL aplicado
+      storage: createJSONStorage(() => createTTLStorage()),
       partialize: (state) => ({
         accounts: state.accounts,
         currentAccount: state.currentAccount,
+        currentSession: state.currentSession,    // ✅ ADICIONAR 
+        isAuthenticated: state.isAuthenticated,  // ✅ ADICIONAR
       }),
       version: 1,
     }

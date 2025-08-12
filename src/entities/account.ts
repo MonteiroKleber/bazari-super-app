@@ -30,6 +30,7 @@ export interface WalletKeyPair {
 }
 
 export interface AuthCredentials {
+   name?: string
   password: string
   confirmPassword?: string
 }

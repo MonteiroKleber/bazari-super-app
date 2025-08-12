@@ -7,6 +7,10 @@
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 
+// Sistema de Ícones
+export { Icons } from './Icons'
+export type { IconProps } from './Icons'
+
 export { Input } from './Input'
 export type { InputProps } from './Input'
 
@@ -100,3 +104,6 @@ export const useA11y = () => ({
     },
   },
 })
+
+
+

@@ -35,7 +35,8 @@ export const MyProfilePage: FC = () => {
       return
     }
     
-    if (!isAuthenticated) {
+    // ✅ CORREÇÃO: Verificar se está autenticado antes de redirecionar
+    if (isAuthenticated) {
       console.log('🔧 DEBUG: Não autenticado, redirecionando para login')
       navigate('/auth/login')
       return

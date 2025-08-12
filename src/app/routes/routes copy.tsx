@@ -26,6 +26,8 @@ const EditProfilePage = lazy(() => import('@pages/profile/EditProfilePage').then
 const PublicProfilePage = lazy(() => import('@pages/profile/PublicProfilePage').then(m => ({ default: m.PublicProfilePage })))
 const SearchUsersPage = lazy(() => import('@pages/profile/SearchUsersPage').then(m => ({ default: m.SearchUsersPage })))
 
+import { marketplaceRoutes } from './routes/marketplaceRoutes'
+
 /**
  * Componente de Loading para Suspense
  */

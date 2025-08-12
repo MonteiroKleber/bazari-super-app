@@ -1,28 +1,35 @@
-
-// BEGIN ETAPA3-AUTH
-import { FC } from 'react'
+import { FC, startTransition } from 'react' // ✅ ADICIONAR startTransition
 import { useNavigate, useLocation } from 'react-router-dom'
 import { LoginForm } from '@features/auth/components/LoginForm'
 import { AuthLayout } from '@features/auth/components/AuthLayout'
-// import { useAuthTranslation } from '@shared/hooks/useTranslation'
-const T = (k:string)=>k
 
 export const LoginPage: FC = () => {
-  // const { t } = useAuthTranslation()
-  const t = T
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location as any).state?.from?.pathname || '/dashboard'
 
   return (
-    <AuthLayout title={t('signIn')} subtitle={t('signInToYourAccount')}>
+    <AuthLayout title="Entrar" subtitle="Entre na sua conta">
       <LoginForm
-        onSuccess={() => navigate(from, { replace: true })}
-        onSwitchToRegister={() => navigate('/auth/register')}
-        onSwitchToImport={() => navigate('/auth/import')}
+        onSuccess={() => {
+          // ✅ ENVOLVER com startTransition
+          startTransition(() => {
+            navigate(from, { replace: true })
+          })
+        }}
+        onSwitchToRegister={() => {
+          // ✅ ENVOLVER com startTransition - LINHA 21 QUE ESTAVA CAUSANDO ERRO
+          startTransition(() => {
+            navigate('/auth/register')
+          })
+        }}
+        onSwitchToImport={() => {
+          // ✅ ENVOLVER com startTransition
+          startTransition(() => {
+            navigate('/auth/import')
+          })
+        }}
       />
     </AuthLayout>
   )
 }
-// END ETAPA3-AUTH
-

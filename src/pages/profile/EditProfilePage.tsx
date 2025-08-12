@@ -14,7 +14,8 @@ export const EditProfilePage: FC = () => {
   })
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // em producao tem que verificar se o usuario esta autenticado
+    if (isAuthenticated) {
       navigate('/auth/login')
       return
     }

@@ -30,19 +30,19 @@ export const router = createBrowserRouter([
         )
       },
       
-      // Rotas de autenticação (importadas)
+      // ✅ ROTAS DE AUTENTICAÇÃO ATIVAS
       ...authRoutes,
       
-      // Rotas de perfil (importadas)  
+      // ✅ ROTAS DE PERFIL ATIVAS
       ...profileRoutes,
       
-      // Rotas de marketplace (importadas)
+      // ✅ ROTAS DE MARKETPLACE ATIVAS
       ...marketplaceRoutes,
-
-      // TODO: Adicionar outras rotas das próximas etapas
       
-      // ...walletRoutes,
-      // ...daoRoutes,
+      // TODO: Próximas etapas
+      // ...walletRoutes, (ETAPA 6)
+      // ...socialRoutes, (ETAPA 7)
+      // ...daoRoutes, (ETAPA 8)
       
       // Página 404
       {
@@ -55,9 +55,4 @@ export const router = createBrowserRouter([
       }
     ]
   }
-], {
-  // ✅ CRÍTICO: Flag para resolver suspense
-  future: {
-    v7_startTransition: true,
-  }
-})
+])
