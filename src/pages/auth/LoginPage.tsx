@@ -1,10 +1,11 @@
 import { FC, startTransition } from 'react' // ✅ ADICIONAR startTransition
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { useNavigation } from '@shared/hooks/useNavigation'
 import { LoginForm } from '@features/auth/components/LoginForm'
 import { AuthLayout } from '@features/auth/components/AuthLayout'
 
 export const LoginPage: FC = () => {
-  const navigate = useNavigate()
+   const { navigate } = useNavigation()
   const location = useLocation()
   const from = (location as any).state?.from?.pathname || '/dashboard'
 

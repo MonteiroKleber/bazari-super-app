@@ -1,17 +1,26 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState, startTransition } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export const RegistrationSuccess: FC = () => {
+  const navigate = useNavigate()
   const [countdown, setCountdown] = useState(3)
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1) { clearInterval(timer); return 0 }
+        if (prev <= 1) { 
+          clearInterval(timer)
+          // ✅ NAVEGAÇÃO PARA PERFIL COM startTransition
+          startTransition(() => {
+            navigate('/profile')
+          })
+          return 0
+        }
         return prev - 1
       })
     }, 1000)
     return () => clearInterval(timer)
-  }, [])
+  }, [navigate])
 
   return (
     <div className="text-center space-y-6">
@@ -29,7 +38,9 @@ export const RegistrationSuccess: FC = () => {
       </div>
 
       <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-        <p className="text-sm text-primary-700">Redirecionando para o dashboard em {countdown} segundos...</p>
+        <p className="text-sm text-primary-700">
+          Redirecionando para seu perfil em {countdown} segundos...
+        </p>
       </div>
 
       <div className="space-y-2 text-sm text-gray-600">
@@ -37,6 +48,13 @@ export const RegistrationSuccess: FC = () => {
         <p>✅ Frase de recuperação salva</p>
         <p>✅ Pronto para usar o Bazari</p>
       </div>
+
+      <button
+        onClick={() => startTransition(() => navigate('/profile'))}
+        className="btn-primary"
+      >
+        Ir para Meu Perfil
+      </button>
     </div>
   )
 }

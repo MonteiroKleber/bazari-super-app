@@ -1,0 +1,42 @@
+git checkout -B main && git add -A && (HUSKY=0 git commit -m "chore: subir todos os arquivos [skip ci]" --no-verify || true) && git push --no-verify -u origin main
+
+zip -r bazari-super-app.zip . -x "node_modules/*" ".git/*" ".sh/*" ".txt/*" "dist/*" "build/*" ".next/*" ".cache/*" "*.zip"
+
+569f1056...f020ad55
+5f55c6af...d15ac20e	
+
+
+
+erros:
+
+12:22:15 PM [vite] warning: Duplicate key "focus:ring-gray-500" in object literal
+91 |        'hover:bg-gray-100 dark:hover:bg-dark-800 text-gray-700 dark:text-gray-300':
+92 |        variant === 'ghost' && !disabled && !loading,
+93 |        'focus:ring-gray-500': variant === 'ghost',
+   |        ^
+94 |  
+95 |        // Danger
+
+  Plugin: vite:esbuild
+  File: /home/bazari/bazari-super-app/src/shared/ui/Button.tsx
+12:24:09 PM [vite] warning: Duplicate key "border-gray-300 dark:border-gray-600" in object literal
+82 |  
+83 |          'border-0 border-b-2 rounded-none bg-transparent': variant === 'flushed',
+84 |          'border-gray-300 dark:border-gray-600': variant === 'flushed' && !error,
+   |          ^
+85 |          'border-red-500 dark:border-red-400': variant === 'flushed' && error
+86 |        }
+
+  Plugin: vite:esbuild
+  File: /home/bazari/bazari-super-app/src/shared/ui/Select.tsx
+12:24:09 PM [vite] warning: Duplicate key "border-red-500 dark:border-red-400" in object literal
+83 |          'border-0 border-b-2 rounded-none bg-transparent': variant === 'flushed',
+84 |          'border-gray-300 dark:border-gray-600': variant === 'flushed' && !error,
+85 |          'border-red-500 dark:border-red-400': variant === 'flushed' && error
+   |          ^
+86 |        }
+87 |      );
+
+  Plugin: vite:esbuild
+  File: /home/bazari/bazari-super-app/src/shared/ui/Select.tsx
+

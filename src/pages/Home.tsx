@@ -1,11 +1,12 @@
 import React, { startTransition } from "react"; // ✅ Adicionar startTransition
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom"; // ✅ ADICIONAR IMPORT DO LINK
+import { useNavigation } from "@shared/hooks/useNavigation";
 import { useAuth } from "@features/auth/hooks/useAuth";
 import { useCommonTranslation } from "@app/i18n/useTranslation";
 
 
 const Home = () => {
-  const navigate = useNavigate();
+   const { navigate } = useNavigation();
   const { isAuthenticated, user } = useAuth();
   const { t } = useCommonTranslation();
 

@@ -1,9 +1,9 @@
 import { FC, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigation } from '@shared/hooks/useNavigation'
 import { useAuth } from '@features/auth/hooks/useAuth'
 
 export const MyProfilePage: FC = () => {
-  const navigate = useNavigate()
+   const { navigate } = useNavigation()
   const { 
     isAuthenticated, 
     currentAccount, 
@@ -36,7 +36,7 @@ export const MyProfilePage: FC = () => {
     }
     
     // ✅ CORREÇÃO: Verificar se está autenticado antes de redirecionar
-    if (isAuthenticated) {
+    if (!isAuthenticated) {
       console.log('🔧 DEBUG: Não autenticado, redirecionando para login')
       navigate('/auth/login')
       return

@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import { ChevronDown, Check, AlertCircle } from '@shared/icons'
+import { ChevronDown, Check } from '@shared/icons'
 
 export interface SelectOption {
   value: string
