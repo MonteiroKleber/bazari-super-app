@@ -1,5 +1,3 @@
-
-// BEGIN ETAPA3-AUTH
 import { FC, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthForm } from '../hooks/useAuthForm'
@@ -36,22 +34,38 @@ export const RegisterForm: FC<RegisterFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🔧 DEBUG: RegisterForm submit iniciado')
+    
     const passwordError = validateField('password', formData.password)
     const confirmPasswordError = validateField('confirmPassword', formData.confirmPassword, formData)
+    
     if (passwordError || confirmPasswordError) {
       setFieldError('password', passwordError)
       setFieldError('confirmPassword', confirmPasswordError)
       return
     }
+    
     if (!formData.agreedToTerms) {
       setFieldError('terms', 'Você deve aceitar os termos')
       return
     }
+    
     try {
+      console.log('🔧 DEBUG: Gerando seed phrase...')
       const seedPhrase = await generateNewSeedPhrase()
-      await register({ password: formData.password, confirmPassword: formData.confirmPassword }, seedPhrase)
+      console.log('🔧 DEBUG: Seed phrase gerada:', seedPhrase?.substring(0, 20) + '...')
+      
+      console.log('🔧 DEBUG: Registrando conta...')
+      await register({ 
+        password: formData.password, 
+        confirmPassword: formData.confirmPassword 
+      }, seedPhrase)
+      
+      console.log('🔧 DEBUG: Conta registrada, indo para seed phrase display')
       onComplete()
-    } catch {}
+    } catch (error) {
+      console.error('❌ ERROR: Falha no registro:', error)
+    }
   }
 
   return (
@@ -84,7 +98,7 @@ export const RegisterForm: FC<RegisterFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar Senha</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar senha</label>
         <input
           type="password"
           value={formData.confirmPassword}
@@ -107,11 +121,11 @@ export const RegisterForm: FC<RegisterFormProps> = ({
           className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
         />
         <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-          Eu li e aceito os termos
+          Aceito os termos de uso e política de privacidade
         </label>
       </div>
       {formState.errors.terms && (
-        <p className="text-sm text-error-600">{formState.errors.terms}</p>
+        <p className="mt-1 text-sm text-error-600">{formState.errors.terms}</p>
       )}
 
       {error && (
@@ -120,9 +134,9 @@ export const RegisterForm: FC<RegisterFormProps> = ({
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={isLoading || !formState.isValid || !formData.agreedToTerms}
+      <button 
+        type="submit" 
+        disabled={isLoading} 
         className="w-full btn-primary disabled:opacity-50"
       >
         {isLoading ? 'Criando conta...' : 'Criar Conta'}
@@ -136,5 +150,3 @@ export const RegisterForm: FC<RegisterFormProps> = ({
     </form>
   )
 }
-// END ETAPA3-AUTH
-

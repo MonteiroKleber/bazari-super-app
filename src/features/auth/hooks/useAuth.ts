@@ -1,17 +1,18 @@
-
-// BEGIN ETAPA3-AUTH
-import { useAuthStore } from '../store/authStore'
+// src/features/auth/hooks/useAuth.ts
 import { useCallback } from 'react'
+import { useAuthStore } from '../store/authStore'
 import type { AuthCredentials } from '@entities/account'
 
 export function useAuth() {
   const {
+    // estado
     currentSession,
     currentAccount,
     accounts,
     isAuthenticated,
     isLoading,
     error,
+    // ações
     login,
     logout,
     register,
@@ -19,13 +20,14 @@ export function useAuth() {
     switchAccount,
     updateAccount,
     deleteAccount,
+    // utils
     setError,
     clearError,
-    refreshSession
+    refreshSession,
   } = useAuthStore()
 
   const handleLogin = useCallback(async (accountId: string, password: string) => {
-    const account = accounts.find(acc => acc.id === accountId)
+    const account = accounts.find((a) => a.id === accountId)
     if (!account) {
       setError('Conta não encontrada')
       return false
@@ -42,7 +44,7 @@ export function useAuth() {
     }
   }, [register, login])
 
-  const handleImportAccount = useCallback(async (seedPhrase: string, password: string, name?: string) => {
+  const handleImport = useCallback(async (seedPhrase: string, password: string, name?: string) => {
     try {
       const account = await importAccount(seedPhrase, password, name)
       return login(account, password)
@@ -52,25 +54,26 @@ export function useAuth() {
   }, [importAccount, login])
 
   return {
+    // estado
     currentSession,
     currentAccount,
     accounts,
     isAuthenticated,
     isLoading,
     error,
+    // ações
     login: handleLogin,
     logout,
     register: handleRegister,
-    importAccount: handleImportAccount,
+    importAccount: handleImport,
     switchAccount,
     updateAccount,
     deleteAccount,
+    // utilitários
     clearError,
     refreshSession,
     hasAccounts: accounts.length > 0,
     currentAddress: currentAccount?.address,
-    currentPublicKey: currentAccount?.publicKey
+    currentPublicKey: currentAccount?.publicKey,
   }
 }
-// END ETAPA3-AUTH
-

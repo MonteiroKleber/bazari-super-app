@@ -3,6 +3,7 @@
 // Exportação centralizada de todos os componentes do Design System
 
 // Componentes de Entrada
+
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 

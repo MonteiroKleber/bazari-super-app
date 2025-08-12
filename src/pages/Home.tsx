@@ -1,136 +1,162 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '@features/auth/hooks/useAuth'
-import { useHomeTranslation } from '@app/i18n/useTranslation' // ← CORRIGIDO
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@features/auth/hooks/useAuth";
+import { useCommonTranslation } from "@app/i18n/useTranslation";
 
 const Home = () => {
-  const { t } = useHomeTranslation()
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogin = () => {
-    navigate('/auth/login')
-  }
-
-  const handleRegister = () => {
-    navigate('/auth/register')
-  }
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const { t } = useCommonTranslation();
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      navigate('/profile')
+      navigate("/profile");
     } else {
-      navigate('/auth/register')
+      navigate("/auth/register");
     }
-  }
+  };
+
+  const handleLogin = () => {
+    navigate("/auth/login");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700">
-      {/* Header */}
-      <header className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-secondary-500 rounded-lg flex items-center justify-center">
-              <span className="text-xl font-bold text-primary-900">B</span>
+    <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-500">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <header className="flex justify-between items-center mb-16">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+              <span className="text-2xl font-bold text-primary-900">B</span>
             </div>
-            <h1 className="text-2xl font-bold text-white">Bazari</h1>
-          </Link>
-          
-          <nav className="hidden md:flex space-x-8">
-            <a href="#features" className="text-white hover:text-secondary-300 transition-colors">
-              Recursos
-            </a>
-            <a href="#about" className="text-white hover:text-secondary-300 transition-colors">
-              Sobre
-            </a>
-            <a href="#roadmap" className="text-white hover:text-secondary-300 transition-colors">
-              Roadmap
-            </a>
-          </nav>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Bazari</h1>
+              <p className="text-sm text-primary-100">{t("web3SuperApp")}</p>
+            </div>
+          </div>
 
-          <div className="flex space-x-4">
+          {/* Auth Buttons */}
+          <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <Link
-                to="/profile"
-                className="px-6 py-2 bg-secondary-500 text-primary-900 rounded-lg hover:bg-secondary-400 transition-colors duration-200 font-medium"
-              >
-                Meu Perfil
-              </Link>
+              <div className="flex items-center space-x-3">
+                <span className="text-white">Olá, {user?.name}</span>
+                <Link
+                  to="/profile"
+                  className="bg-white text-primary-900 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors"
+                >
+                  Meu Perfil
+                </Link>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center space-x-3">
                 <button
                   onClick={handleLogin}
-                  className="px-6 py-2 bg-transparent border border-white text-white rounded-lg hover:bg-white hover:text-primary-900 transition-all duration-200"
+                  className="text-white border border-white px-4 py-2 rounded-lg hover:bg-white hover:text-primary-900 transition-colors"
                 >
                   Entrar
                 </button>
                 <button
-                  onClick={handleRegister}
-                  className="px-6 py-2 bg-secondary-500 text-primary-900 rounded-lg hover:bg-secondary-400 transition-colors duration-200 font-medium"
+                  onClick={handleGetStarted}
+                  className="bg-secondary-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-secondary-600 transition-colors"
                 >
                   Começar
                 </button>
-              </>
+              </div>
             )}
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Hero Section */}
-      <main className="relative z-10 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            O Futuro do
-            <span className="block text-secondary-400">Comércio Social</span>
-          </h2>
-          
-          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto">
-            Marketplace descentralizado onde sua identidade é um ativo, 
-            seus negócios são tokens e sua comunidade governa o ecossistema.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <button
-              onClick={handleGetStarted}
-              className="w-full sm:w-auto px-8 py-4 bg-secondary-500 text-primary-900 rounded-xl hover:bg-secondary-400 transition-colors duration-200 font-semibold text-lg"
-            >
-              {isAuthenticated ? 'Acessar Plataforma' : 'Criar Conta Gratuita'}
-            </button>
+        {/* Hero Section */}
+        <main className="text-center text-white">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              O Futuro do <br />
+              <span className="text-secondary-400">Comércio Digital</span>
+            </h2>
             
-            {!isAuthenticated && (
-              <Link
-                to="/auth/login"
-                className="w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white hover:text-primary-900 transition-all duration-200 font-semibold text-lg text-center"
+            <p className="text-xl md:text-2xl mb-8 text-primary-100 max-w-3xl mx-auto leading-relaxed">
+              Conecte, comercialize e cresça no primeiro super app Web3 que une 
+              marketplace, rede social e economia descentralizada.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <button
+                onClick={handleGetStarted}
+                className="bg-secondary-500 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-secondary-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                Já tenho conta
+                Começar Agora
+              </button>
+              
+              <Link
+                to="/about"
+                className="border-2 border-white text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white hover:text-primary-900 transition-all duration-300"
+              >
+                Saiba Mais
               </Link>
-            )}
-          </div>
+            </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary-400 mb-2">100%</div>
-              <div className="text-white">Descentralizado</div>
+            {/* Features Grid */}
+            <div className="grid md:grid-cols-3 gap-8 mt-16">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="w-16 h-16 bg-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🛒</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Marketplace</h3>
+                <p className="text-primary-100">
+                  Compre e venda produtos e serviços com segurança blockchain e pagamentos instantâneos.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="w-16 h-16 bg-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">👥</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Rede Social</h3>
+                <p className="text-primary-100">
+                  Conecte-se com outros usuários, compartilhe experiências e construa sua reputação.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div className="w-16 h-16 bg-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">💰</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Web3 Economy</h3>
+                <p className="text-primary-100">
+                  Tokenize seus ativos, participe da governança e ganhe com staking e NFTs.
+                </p>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary-400 mb-2">0%</div>
-              <div className="text-white">Taxas de Plataforma</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary-400 mb-2">∞</div>
-              <div className="text-white">Possibilidades</div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 text-center">
+              <div>
+                <div className="text-3xl font-bold text-secondary-400">1M+</div>
+                <div className="text-primary-100">Usuários</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-secondary-400">50K+</div>
+                <div className="text-primary-100">Estabelecimentos</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-secondary-400">$10M+</div>
+                <div className="text-primary-100">Transacionado</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-secondary-400">99.9%</div>
+                <div className="text-primary-100">Uptime</div>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
 
-      {/* Background decorativo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl" />
+        {/* Footer */}
+        <footer className="mt-16 pt-8 border-t border-white/20 text-center text-primary-100">
+          <p>&copy; 2024 Bazari. {t("allRightsReserved")}.</p>
+        </footer>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

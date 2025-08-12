@@ -1,8 +1,35 @@
-
-// BEGIN ETAPA3-AUTH
+// src/features/auth/store/authStore.ts
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware'
 import type { Account, AuthSession, AuthCredentials } from '@entities/account'
+
+// === NOVO: storage com TTL (24h) ===
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
+function createTTLStorage(ttlMs = ONE_DAY_MS): StateStorage {
+  return {
+    getItem: (name: string) => {
+      const raw = localStorage.getItem(name)
+      if (!raw) return null
+      try {
+        const parsed = JSON.parse(raw)
+        const { v, t } = parsed || {}
+        if (typeof t === 'number' && Date.now() - t > ttlMs) {
+          localStorage.removeItem(name)
+          return null
+        }
+        return JSON.stringify(v)
+      } catch {
+        return null
+      }
+    },
+    setItem: (name: string, value: string) => {
+      // sempre renova o TTL quando gravar
+      localStorage.setItem(name, JSON.stringify({ v: JSON.parse(value), t: Date.now() }))
+    },
+    removeItem: (name: string) => localStorage.removeItem(name),
+  }
+}
 
 interface AuthState {
   currentSession: AuthSession | null
@@ -19,6 +46,7 @@ interface AuthState {
   switchAccount: (accountId: string, password: string) => Promise<boolean>
   updateAccount: (accountId: string, updates: Partial<Account>) => void
   deleteAccount: (accountId: string) => void
+
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   clearError: () => void
@@ -35,10 +63,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      login: async (account: Account, password: string) => {
+      login: async (account, password) => {
         set({ isLoading: true, error: null })
         try {
-          const { authService } = await import('../services/authService')
+          const authService = await import('../services/authService')
           const isValid = await authService.validateAccountPassword(account, password)
           if (!isValid) throw new Error('Senha incorreta')
 
@@ -48,20 +76,21 @@ export const useAuthStore = create<AuthState>()(
             publicKey: account.publicKey,
             isAuthenticated: true,
             loginTime: new Date(),
-            lastActivity: new Date()
+            lastActivity: new Date(),
           }
 
           set({
             currentSession: session,
             currentAccount: account,
             isAuthenticated: true,
-            isLoading: false
+            isLoading: false,
           })
+
           return true
-        } catch (error) {
+        } catch (e) {
           set({
-            error: error instanceof Error ? error.message : 'Erro no login',
-            isLoading: false
+            error: e instanceof Error ? e.message : 'Erro no login',
+            isLoading: false,
           })
           return false
         }
@@ -72,45 +101,50 @@ export const useAuthStore = create<AuthState>()(
           currentSession: null,
           currentAccount: null,
           isAuthenticated: false,
-          error: null
+          error: null,
         })
       },
 
       register: async (credentials, seedPhrase) => {
         set({ isLoading: true, error: null })
         try {
-          const { authService } = await import('../services/authService')
+          const authService = await import('../services/authService')
           const account = await authService.createAccount(credentials, seedPhrase)
-          set(state => ({ accounts: [...state.accounts, account], isLoading: false }))
+          set((state) => ({
+            accounts: [...state.accounts, account],
+            isLoading: false,
+          }))
           return account
-        } catch (error) {
+        } catch (e) {
           set({
-            error: error instanceof Error ? error.message : 'Erro no registro',
-            isLoading: false
+            error: e instanceof Error ? e.message : 'Erro no registro',
+            isLoading: false,
           })
-          throw error
+          throw e
         }
       },
 
       importAccount: async (seedPhrase, password, name = 'Conta Importada') => {
         set({ isLoading: true, error: null })
         try {
-          const { authService } = await import('../services/authService')
+          const authService = await import('../services/authService')
           const account = await authService.importAccount(seedPhrase, password, name)
-          set(state => ({ accounts: [...state.accounts, account], isLoading: false }))
+          set((state) => ({
+            accounts: [...state.accounts, account],
+            isLoading: false,
+          }))
           return account
-        } catch (error) {
+        } catch (e) {
           set({
-            error: error instanceof Error ? error.message : 'Erro na importação',
-            isLoading: false
+            error: e instanceof Error ? e.message : 'Erro na importação',
+            isLoading: false,
           })
-          throw error
+          throw e
         }
       },
 
       switchAccount: async (accountId, password) => {
-        const { accounts } = get()
-        const account = accounts.find(a => a.id === accountId)
+        const account = get().accounts.find((a) => a.id === accountId)
         if (!account) {
           set({ error: 'Conta não encontrada' })
           return false
@@ -119,23 +153,24 @@ export const useAuthStore = create<AuthState>()(
       },
 
       updateAccount: (accountId, updates) => {
-        set(state => ({
-          accounts: state.accounts.map(acc => acc.id === accountId ? { ...acc, ...updates } : acc),
-          currentAccount: state.currentAccount?.id === accountId
-            ? { ...state.currentAccount, ...updates }
-            : state.currentAccount
+        set((state) => ({
+          accounts: state.accounts.map((a) => (a.id === accountId ? { ...a, ...updates } : a)),
+          currentAccount:
+            state.currentAccount?.id === accountId
+              ? { ...state.currentAccount, ...updates }
+              : state.currentAccount,
         }))
       },
 
       deleteAccount: (accountId) => {
-        set(state => {
-          const newAccounts = state.accounts.filter(acc => acc.id !== accountId)
+        set((state) => {
+          const next = state.accounts.filter((a) => a.id !== accountId)
           const isCurrent = state.currentAccount?.id === accountId
           return {
-            accounts: newAccounts,
+            accounts: next,
             currentAccount: isCurrent ? null : state.currentAccount,
             currentSession: isCurrent ? null : state.currentSession,
-            isAuthenticated: isCurrent ? false : state.isAuthenticated
+            isAuthenticated: isCurrent ? false : state.isAuthenticated,
           }
         })
       },
@@ -145,18 +180,22 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
 
       refreshSession: () => {
-        const s = get().currentSession
-        if (s) set({ currentSession: { ...s, lastActivity: new Date() } })
-      }
+        const s = get()
+        if (s.currentSession) {
+          set({
+            currentSession: { ...s.currentSession, lastActivity: new Date() },
+          })
+        }
+      },
     }),
     {
       name: 'bazari-auth',
+      storage: createJSONStorage(() => createTTLStorage()), // <— TTL aplicado
       partialize: (state) => ({
         accounts: state.accounts,
-        currentAccount: state.currentAccount
-      })
+        currentAccount: state.currentAccount,
+      }),
+      version: 1,
     }
   )
 )
-// END ETAPA3-AUTH
-
