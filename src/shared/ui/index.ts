@@ -7,8 +7,7 @@ export { Card } from './Card'
 export { Modal } from './Modal'
 export { Badge } from './Badge'
 export { Tooltip } from './Tooltip'
-export { Loading } from './Loading'
-export { Spinner } from './Spinner'
+export { Loading, Spinner } from './Loading'  // ✅ Arquivo existente
 
 // ✅ TABS COMPONENTS (novos)
 export { 
@@ -19,7 +18,7 @@ export {
 } from './Tabs'
 
 // ✅ TOAST SYSTEM
-export { Toast, ToastContainer, useToast } from './Toast'
+export { Toast, ToastContainer } from './Toast'
 
 // ✅ ICONS
 export { Icons } from './Icons'

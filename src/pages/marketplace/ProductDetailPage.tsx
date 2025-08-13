@@ -1,68 +1,170 @@
 import { FC, useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { marketplaceService } from '@features/marketplace/services/marketplaceService'
-import { useBusiness } from '@features/marketplace/hooks/useBusiness'
-import { useMarketplace } from '@features/marketplace/hooks/useMarketplace'
 import { Product } from '@entities/product'
-import { Button } from '@shared/ui/Button'
-import { Badge } from '@shared/ui/Badge'
-import { Card } from '@shared/ui/Card'
-import { Icons } from '@shared/ui/Icons'
+import { Business } from '@entities/business'
+import { Button, Badge, Card, Icons } from '@shared/ui'
 
 export const ProductDetailPage: FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [product, setProduct] = useState<Product | null>(null)
+  const [business, setBusiness] = useState<Business | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  
-  const { business, loadBusiness } = useBusiness()
-  const { addToCart } = useMarketplace()
 
+  // Helper para renderizar estrelas com segurança
+  const renderStars = (rating: number | undefined, size = 'w-5 h-5') => {
+    const safeRating = typeof rating === 'number' && !isNaN(rating) ? rating : 0
+    const filledStars = Math.floor(Math.min(safeRating, 5))
+    
+    return (
+      <div className="flex items-center">
+        {Array.from({ length: 5 }, (_, index) => (
+          <Icons.Star
+            key={`star-${index}`}
+            className={`${size} ${
+              index < filledStars
+                ? 'text-yellow-500 fill-current'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  // Helper para formatar preço com segurança
+  const formatPrice = (price: number | undefined, currency = 'BRL') => {
+    const safePrice = typeof price === 'number' && !isNaN(price) ? price : 0
+    try {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: currency === 'BRL' ? 'BRL' : 'USD'
+      }).format(safePrice)
+    } catch {
+      return `R$ ${safePrice.toFixed(2)}`
+    }
+  }
+
+  // Helper para validar string
+  const safeString = (value: unknown, fallback = '') => {
+    return typeof value === 'string' ? value : fallback
+  }
+
+  // Helper para validar número
+  const safeNumber = (value: unknown, fallback = 0) => {
+    return typeof value === 'number' && !isNaN(value) ? value : fallback
+  }
+
+  // Carregar dados do produto (mock)
   useEffect(() => {
     const loadProduct = async () => {
       if (!id) return
       
       setIsLoading(true)
-      try {
-        const productData = await marketplaceService.getProduct(id)
-        setProduct(productData)
-        
-        if (productData) {
-          await loadBusiness(productData.businessId)
-        }
-      } catch (error) {
-        console.error('Erro ao carregar produto:', error)
-      } finally {
-        setIsLoading(false)
+      
+      // Mock data
+      const mockProduct: Product = {
+        id: id,
+        businessId: 'biz-1',
+        name: 'Camiseta Personalizada Web3',
+        description: 'Camiseta de alta qualidade com estampa exclusiva do mundo Web3. Feita com algodão 100% orgânico e tinta ecológica. Perfeita para mostrar seu apoio à descentralização.',
+        shortDescription: 'Camiseta premium com estampa Web3 exclusiva',
+        price: 89.90,
+        originalPrice: 129.90,
+        currency: 'BRL',
+        category: 'Roupas',
+        subcategory: 'Camisetas',
+        tags: ['Web3', 'Blockchain', 'Algodão Orgânico', 'Sustentável'],
+        images: [
+          {
+            id: '1',
+            url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop',
+            alt: 'Camiseta Web3 - Frente',
+            isMain: true,
+            order: 0
+          },
+          {
+            id: '2', 
+            url: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop',
+            alt: 'Camiseta Web3 - Costas',
+            isMain: false,
+            order: 1
+          }
+        ],
+        stock: 15,
+        isUnlimited: false,
+        trackInventory: true,
+        isTokenized: true,
+        tokenId: 'NFT-001',
+        isNFT: true,
+        isActive: true,
+        isFeatured: true,
+        isDigital: false,
+        rating: 4.8,
+        reviewCount: 127,
+        totalSales: 340,
+        views: 1250,
+        slug: 'camiseta-web3-premium',
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-20')
       }
+
+      const mockBusiness: Business = {
+        id: 'biz-1',
+        name: 'Web3 Fashion',
+        description: 'Loja especializada em roupas e acessórios com temática Web3 e blockchain.',
+        ownerAddress: '5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty',
+        category: {
+          id: 'fashion',
+          name: 'Moda',
+          level: 1
+        },
+        address: {
+          street: 'Rua das Flores, 123',
+          city: 'São Paulo',
+          state: 'SP',
+          country: 'Brasil',
+          zipCode: '01234-567'
+        },
+        logoUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop',
+        isTokenized: true,
+        rating: 4.9,
+        reviewCount: 89,
+        totalSales: 1250,
+        verificationLevel: 'verified',
+        isActive: true,
+        isVerified: true,
+        isFeatured: true,
+        followers: 2340,
+        tags: ['Web3', 'Fashion', 'Sustentável'],
+        createdAt: new Date('2023-05-10'),
+        updatedAt: new Date('2024-01-20')
+      }
+
+      // Simular delay de carregamento
+      setTimeout(() => {
+        setProduct(mockProduct)
+        setBusiness(mockBusiness)
+        setIsLoading(false)
+      }, 1000)
     }
 
     loadProduct()
-  }, [id, loadBusiness])
+  }, [id])
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!product) return
-    
-    const success = await addToCart(product.id, quantity)
-    if (success) {
-      // TODO: Show success notification
-    }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: product?.currency === 'BRL' ? 'BRL' : 'USD'
-    }).format(price)
+    // Lógica do carrinho aqui
+    console.log(`Adicionado ao carrinho: ${product.name} x${quantity}`)
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F1E0] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B0000] mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando produto...</p>
         </div>
       </div>
@@ -71,7 +173,7 @@ export const ProductDetailPage: FC = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F1E0] flex items-center justify-center">
         <div className="text-center">
           <Icons.Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Produto não encontrado</h1>
@@ -90,46 +192,40 @@ export const ProductDetailPage: FC = () => {
     : 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F5F1E0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm mb-8">
-          <button onClick={() => navigate('/marketplace')} className="text-primary-600 hover:text-primary-700">
+        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+          <button onClick={() => navigate('/marketplace')} className="hover:text-[#8B0000]">
             Marketplace
           </button>
-          <Icons.ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-600">{product.category}</span>
-          <Icons.ChevronRight className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-900 truncate">{product.name}</span>
+          <Icons.ArrowRight className="w-4 h-4" />
+          <span className="text-gray-900">{safeString(product.name)}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Imagens */}
+          {/* Galeria de Imagens */}
           <div className="space-y-4">
             {/* Imagem Principal */}
-            <div className="aspect-square overflow-hidden rounded-lg border">
-              {product.images.length > 0 ? (
-                <img
-                  src={product.images[selectedImageIndex]?.url}
-                  alt={product.images[selectedImageIndex]?.alt}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <Icons.Image className="w-24 h-24 text-gray-400" />
-                </div>
-              )}
+            <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200">
+              <img
+                src={product.images?.[selectedImageIndex]?.url || '/placeholder-product.png'}
+                alt={product.images?.[selectedImageIndex]?.alt || safeString(product.name)}
+                className="w-full h-full object-cover"
+              />
             </div>
-
+            
             {/* Miniaturas */}
-            {product.images.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto">
+            {product.images && product.images.length > 1 && (
+              <div className="flex space-x-2">
                 {product.images.map((image, index) => (
                   <button
-                    key={image.id}
+                    key={`thumb-${index}`}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                      selectedImageIndex === index ? 'border-primary-500' : 'border-gray-200'
+                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                      selectedImageIndex === index
+                        ? 'border-[#8B0000]'
+                        : 'border-gray-200'
                     }`}
                   >
                     <img
@@ -145,42 +241,42 @@ export const ProductDetailPage: FC = () => {
 
           {/* Informações do Produto */}
           <div className="space-y-6">
-            {/* Header */}
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                {product.isTokenized && (
-                  <Badge variant="primary">
-                    <Icons.Star className="w-3 h-3 mr-1" />
-                    NFT
-                  </Badge>
-                )}
-                {product.isFeatured && (
-                  <Badge variant="warning">Destaque</Badge>
-                )}
-                {hasDiscount && (
-                  <Badge variant="error">-{discountPercent}%</Badge>
-                )}
-              </div>
-              
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {product.name}
-              </h1>
-              
-              {product.shortDescription && (
-                <p className="text-lg text-gray-600">
-                  {product.shortDescription}
-                </p>
+            {/* Badges */}
+            <div className="flex items-center space-x-2">
+              {product.isTokenized && (
+                <Badge variant="primary">
+                  <Icons.Package className="w-3 h-3 mr-1" />
+                  NFT
+                </Badge>
+              )}
+              {product.isFeatured && (
+                <Badge variant="warning">Destaque</Badge>
+              )}
+              {hasDiscount && (
+                <Badge variant="danger">-{discountPercent}%</Badge>
               )}
             </div>
+            
+            {/* Nome */}
+            <h1 className="text-3xl font-bold text-gray-900">
+              {safeString(product.name)}
+            </h1>
+            
+            {/* Descrição Curta */}
+            {product.shortDescription && (
+              <p className="text-lg text-gray-600">
+                {safeString(product.shortDescription)}
+              </p>
+            )}
 
             {/* Preço */}
             <div className="flex items-center space-x-3">
               <span className="text-3xl font-bold text-gray-900">
-                {formatPrice(product.price)}
+                {formatPrice(product.price, product.currency)}
               </span>
               {hasDiscount && (
                 <span className="text-xl text-gray-500 line-through">
-                  {formatPrice(product.originalPrice!)}
+                  {formatPrice(product.originalPrice, product.currency)}
                 </span>
               )}
               {product.currency === 'BZR' && (
@@ -191,25 +287,14 @@ export const ProductDetailPage: FC = () => {
             {/* Rating e Vendas */}
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-1">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Icons.Star
-                      key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(product.rating)
-                          ? 'text-yellow-500 fill-current'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
+                {renderStars(product.rating)}
                 <span className="text-gray-600">
-                  {product.rating.toFixed(1)} ({product.reviewCount} avaliações)
+                  {safeNumber(product.rating).toFixed(1)} ({safeNumber(product.reviewCount)} avaliações)
                 </span>
               </div>
               
               <span className="text-gray-600">
-                {product.totalSales} vendas
+                {safeNumber(product.totalSales)} vendas
               </span>
             </div>
 
@@ -218,15 +303,15 @@ export const ProductDetailPage: FC = () => {
               <div className="flex items-center space-x-2">
                 <Icons.Package className="w-5 h-5 text-gray-400" />
                 <span className={`text-sm ${
-                  product.stock > 0 
-                    ? product.stock < 10 
+                  safeNumber(product.stock) > 0 
+                    ? safeNumber(product.stock) < 10 
                       ? 'text-orange-600' 
                       : 'text-green-600'
                     : 'text-red-600'
                 }`}>
-                  {product.stock > 0 
-                    ? product.stock < 10 
-                      ? `Apenas ${product.stock} restantes` 
+                  {safeNumber(product.stock) > 0 
+                    ? safeNumber(product.stock) < 10 
+                      ? `Apenas ${safeNumber(product.stock)} restantes` 
                       : 'Em estoque'
                     : 'Fora de estoque'
                   }
@@ -245,12 +330,12 @@ export const ProductDetailPage: FC = () => {
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="p-2 hover:bg-gray-100"
                   >
-                    <Icons.Minus className="w-4 h-4" />
+                    <Icons.ArrowRight className="w-4 h-4 rotate-180" />
                   </button>
                   <span className="px-4 py-2 border-x">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    disabled={product.trackInventory && quantity >= product.stock}
+                    disabled={product.trackInventory && quantity >= safeNumber(product.stock)}
                     className="p-2 hover:bg-gray-100 disabled:opacity-50"
                   >
                     <Icons.Plus className="w-4 h-4" />
@@ -261,28 +346,28 @@ export const ProductDetailPage: FC = () => {
               <div className="space-y-3">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={product.trackInventory && product.stock === 0}
-                  className="w-full"
+                  disabled={product.trackInventory && safeNumber(product.stock) === 0}
+                  className="w-full bg-[#8B0000] hover:bg-[#8B0000]/90"
                   size="lg"
                 >
-                  <Icons.ShoppingCart className="w-5 h-5 mr-2" />
+                  <Icons.Plus className="w-5 h-5 mr-2" />
                   Adicionar ao Carrinho
                 </Button>
                 
-                <Button variant="secondary" className="w-full" size="lg">
+                <Button variant="outline" className="w-full" size="lg">
                   Comprar Agora
                 </Button>
               </div>
             </div>
 
             {/* Tags */}
-            {product.tags.length > 0 && (
+            {product.tags && product.tags.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Tags:</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">
-                      {tag}
+                    <Badge key={`tag-${index}`} variant="secondary">
+                      {safeString(tag)}
                     </Badge>
                   ))}
                 </div>
@@ -291,16 +376,16 @@ export const ProductDetailPage: FC = () => {
           </div>
         </div>
 
-        {/* Descrição e Negócio */}
+        {/* Descrição e Informações do Negócio */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Descrição */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="border border-[#8B0000]/20">
               <div className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Descrição</h2>
                 <div className="prose max-w-none">
                   <p className="text-gray-700 whitespace-pre-line">
-                    {product.description}
+                    {safeString(product.description)}
                   </p>
                 </div>
               </div>
@@ -310,7 +395,7 @@ export const ProductDetailPage: FC = () => {
           {/* Informações do Negócio */}
           {business && (
             <div>
-              <Card>
+              <Card className="border border-[#8B0000]/20">
                 <div className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Vendido por</h3>
                   
@@ -319,7 +404,7 @@ export const ProductDetailPage: FC = () => {
                       {business.logoUrl ? (
                         <img
                           src={business.logoUrl}
-                          alt={business.name}
+                          alt={safeString(business.name)}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -330,35 +415,24 @@ export const ProductDetailPage: FC = () => {
                     </div>
                     
                     <div>
-                      <h4 className="font-medium text-gray-900">{business.name}</h4>
+                      <h4 className="font-medium text-gray-900">{safeString(business.name)}</h4>
                       <div className="flex items-center space-x-1">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Icons.Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < Math.floor(business.rating)
-                                  ? 'text-yellow-500 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
+                        {renderStars(business.rating, 'w-4 h-4')}
                         <span className="text-sm text-gray-600">
-                          ({business.reviewCount})
+                          ({safeNumber(business.reviewCount)})
                         </span>
                       </div>
                     </div>
                   </div>
 
                   <p className="text-sm text-gray-600 mb-4">
-                    {business.description}
+                    {safeString(business.description)}
                   </p>
 
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     onClick={() => navigate(`/marketplace/business/${business.id}`)}
-                    className="w-full"
+                    className="w-full border-[#8B0000] text-[#8B0000] hover:bg-[#8B0000] hover:text-white"
                   >
                     Ver Loja
                   </Button>

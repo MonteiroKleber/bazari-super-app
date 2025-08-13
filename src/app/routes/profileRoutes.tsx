@@ -3,7 +3,9 @@ import { RouteObject } from 'react-router-dom'
 import { AuthGuard } from '@shared/guards/AuthGuard'
 
 // ✅ LAZY IMPORTS SIMPLES (sem .then syntax complexa)
-const MyProfilePage = lazy(() => import('@pages/profile/MyProfilePage'))
+const MyProfilePage = lazy(() =>
+   import('@pages/profile/MyProfilePage').then(m => ({ default: m.MyProfilePage }))
+)
 const EditProfilePage = lazy(() => import('@pages/profile/EditProfilePage'))
 const PublicProfilePage = lazy(() => import('@pages/profile/PublicProfilePage'))
 

@@ -1,3 +1,7 @@
+// 🔧 CORREÇÃO CRÍTICA: src/shared/ui/Badge.tsx
+// Problema: className template literal interpolando objetos variants
+// console.log("[DEBUG] variants[variant]:", variants[variant], "typeof:", typeof variants[variant])
+
 import React from 'react'
 import { motion } from 'framer-motion'
 
@@ -19,36 +23,63 @@ const Badge: React.FC<BadgeProps> = ({
   className = '',
   ...props
 }) => {
-  // Variantes de cor
-  const variants = {
-    primary: 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400',
-    secondary: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900/20 dark:text-secondary-400',
-    success: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    danger: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    info: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    neutral: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+  // 🔧 CORREÇÃO: Garantir que variants sempre retorna string
+  const getVariantClass = (v: string): string => {
+    const map: Record<string, string> = {
+      primary: 'bg-primary-100 text-primary-800 dark:bg-primary-900/20 dark:text-primary-400',
+      secondary: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900/20 dark:text-secondary-400',
+      success: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+      warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+      danger: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+      info: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+      neutral: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+    }
+    return map[v] || map.neutral
   }
 
-  // Tamanhos
-  const sizes = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-2.5 py-1.5 text-sm',
-    lg: 'px-3 py-2 text-base'
+  // 🔧 CORREÇÃO: Garantir que sizes sempre retorna string
+  const getSizeClass = (s: string): string => {
+    const map: Record<string, string> = {
+      sm: 'px-2 py-1 text-xs',
+      md: 'px-2.5 py-1.5 text-sm',
+      lg: 'px-3 py-2 text-base'
+    }
+    return map[s] || map.md
   }
 
-  // Classes base
-  const baseClasses = `
-    inline-flex items-center
-    font-medium rounded-full
-    ${variants[variant]}
-    ${sizes[size]}
-    ${className}
-  `.trim().replace(/\s+/g, ' ')
+  // 🔧 CORREÇÃO: Construir className de forma segura sem template literals
+  const safeVariant = typeof variant === 'string' ? variant : 'neutral'
+  const safeSize = typeof size === 'string' ? size : 'md'
+  const safeClassName = typeof className === 'string' ? className : ''
+
+  // 🔧 CONSTRUÇÃO SEGURA: Array.join() ao invés de template literal
+  const finalClassName = [
+    'inline-flex',
+    'items-center',
+    'font-medium',
+    'rounded-full',
+    getVariantClass(safeVariant),
+    getSizeClass(safeSize),
+    safeClassName
+  ].filter(Boolean).join(' ')
+
+  // 🔧 DOT COLOR: Função separada para garantir string
+  const getDotColor = (v: string): string => {
+    const map: Record<string, string> = {
+      primary: 'bg-primary-600',
+      secondary: 'bg-secondary-600', 
+      success: 'bg-green-600',
+      warning: 'bg-yellow-600',
+      danger: 'bg-red-600',
+      info: 'bg-blue-600',
+      neutral: 'bg-gray-600'
+    }
+    return map[v] || map.neutral
+  }
 
   return (
     <motion.span
-      className={baseClasses}
+      className={finalClassName} // 🔧 String segura garantida
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
@@ -56,15 +87,7 @@ const Badge: React.FC<BadgeProps> = ({
     >
       {/* Dot indicator */}
       {dot && (
-        <span className={`w-2 h-2 rounded-full mr-2 ${
-          variant === 'primary' ? 'bg-primary-600' :
-          variant === 'secondary' ? 'bg-secondary-600' :
-          variant === 'success' ? 'bg-green-600' :
-          variant === 'warning' ? 'bg-yellow-600' :
-          variant === 'danger' ? 'bg-red-600' :
-          variant === 'info' ? 'bg-blue-600' :
-          'bg-gray-600'
-        }`} />
+        <span className={`w-2 h-2 rounded-full mr-2 ${getDotColor(safeVariant)}`} />
       )}
 
       {children}

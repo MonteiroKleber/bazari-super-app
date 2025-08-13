@@ -7,6 +7,25 @@ export interface IconProps {
 }
 
 export const Icons = {
+
+  ArrowRight: ({ className, size = 24, color = 'currentColor' }: IconProps) => (
+    <svg
+      width={size}
+      height={size}
+      className={className}
+      fill="none"
+      stroke={color}
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 7l5 5-5 5M19 12H5"
+      />
+    </svg>
+  ),
+
   // Navigation
   Home: ({ className, size = 24, color = 'currentColor' }: IconProps) => (
     <svg width={size} height={size} className={className} fill="none" stroke={color} viewBox="0 0 24 24">
