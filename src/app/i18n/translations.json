@@ -942,6 +942,55 @@
       "es": "Intentar de nuevo"
     }
   },
+
+  "marketplaceDigital": {
+    "tab": { "pt": "Digitais", "en": "Digital", "es": "Digital" },
+    "heroTitle": {
+      "pt": "Compre, use e revenda seus ativos digitais",
+      "en": "Buy, use and resell your digital assets",
+      "es": "Compra, usa y revende tus activos digitales"
+    },
+    "exploreCTA": { "pt": "Explorar Digitais", "en": "Explore Digital", "es": "Explorar Digital" },
+    "filters": {
+      "category": { "pt": "Categoria", "en": "Category", "es": "Categoría" },
+      "license":  { "pt": "Licença",   "en": "License",  "es": "Licencia" },
+      "price":    { "pt": "Preço",     "en": "Price",    "es": "Precio" },
+      "supply":   { "pt": "Estoque",   "en": "Supply",   "es": "Stock" },
+      "verified": { "pt": "Criador verificado", "en": "Verified creator", "es": "Creador verificado" }
+    },
+    "badges": {
+      "tokenized": { "pt": "Tokenizado", "en": "Tokenized", "es": "Tokenizado" },
+      "royalties": { "pt": "Royalties {{pct}}%", "en": "Royalties {{pct}}%", "es": "Regalías {{pct}}%" },
+      "license": {
+        "lifetime": { "pt": "Vitalícia", "en": "Lifetime", "es": "Vitalicia" },
+        "days30":   { "pt": "30 dias",   "en": "30 days",  "es": "30 días" },
+        "days90":   { "pt": "90 dias",   "en": "90 days",  "es": "90 días" }
+      }
+    },
+    "pdp": {
+      "buy":       { "pt": "Comprar",       "en": "Buy",         "es": "Comprar" },
+      "viewDex":   { "pt": "Ver na DEX",    "en": "View on DEX", "es": "Ver en DEX" },
+      "accessNow": { "pt": "Acessar agora", "en": "Access now",  "es": "Acceder ahora" },
+      "resell":    { "pt": "Listar na DEX", "en": "List on DEX", "es": "Listar en DEX" },
+      "onchainProof": { "pt": "Prova on‑chain", "en": "On‑chain proof", "es": "Prueba on‑chain" }
+    },
+    "mine": { "title": { "pt": "Minhas Compras", "en": "My Purchases", "es": "Mis Compras" } },
+    "create": {
+      "title": { "pt": "Criar Produto Digital", "en": "Create Digital Product", "es": "Crear Producto Digital" },
+      "steps": {
+        "type":    { "pt": "Tipo",    "en": "Type",    "es": "Tipo" },
+        "uploads": { "pt": "Uploads", "en": "Uploads", "es": "Uploads" },
+        "license": { "pt": "Licença", "en": "License", "es": "Licencia" },
+        "supply":  { "pt": "Supply",  "en": "Supply",  "es": "Stock" },
+        "royalties": { "pt": "Royalties", "en": "Royalties", "es": "Regalías" },
+        "pricing": { "pt": "Preço",   "en": "Pricing", "es": "Precio" },
+        "review":  { "pt": "Revisão", "en": "Review",  "es": "Revisión" },
+        "publish": { "pt": "Publicar", "en": "Publish", "es": "Publicar" }
+      },
+      "publishCta": { "pt": "Publicar e Assinar (mock)", "en": "Publish & Sign (mock)", "es": "Publicar y Firmar (mock)" }
+    }
+  },
+  
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Descubra produtos e serviços incríveis na economia descentralizada",

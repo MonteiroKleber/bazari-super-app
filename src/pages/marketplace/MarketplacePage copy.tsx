@@ -1,6 +1,4 @@
-// src/pages/marketplace/MarketplacePage.tsx
-import { FC, useState, useEffect, useTransition } from 'react'
-import { Link } from 'react-router-dom'
+import { FC, useState, useEffect, useTransition, Suspense } from 'react'
 import { useMarketplace } from '@features/marketplace/hooks/useMarketplace'
 import { CategorySelector } from '@features/marketplace/components/CategorySelector'
 import { ProductCard } from '@features/marketplace/components/ProductCard'
@@ -9,10 +7,21 @@ import { Input } from '@shared/ui/Input'
 import { Button } from '@shared/ui/Button'
 import { Select } from '@shared/ui/Select'
 import { Badge } from '@shared/ui/Badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@shared/ui/Tabs'
 import { Icons } from '@shared/ui/Icons'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@shared/ui/Tabs'
 
-export const MarketplacePage: FC = () => {
+// 🎯 SUSPENSE LOADING FALLBACK LOCAL (apenas para Marketplace)
+const MarketplaceLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Carregando marketplace...</p>
+    </div>
+  </div>
+)
+
+// 🎯 COMPONENTE PRINCIPAL COM SUSPENSE BOUNDARY
+const MarketplaceContent: FC = () => {
   const {
     products,
     businesses,
@@ -28,27 +37,23 @@ export const MarketplacePage: FC = () => {
     clearError
   } = useMarketplace()
 
+  // 🔧 CORREÇÃO PRINCIPAL: useTransition para atualizações que podem suspender
+  const [isPending, startTransition] = useTransition()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState('relevance')
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
-  const [isPending, startTransition] = useTransition()
 
-  // Estados para produtos digitais
-  const [digitalProducts, setDigitalProducts] = useState([])
-
-  // Executar busca inicial
+  // Executar busca inicial de forma assíncrona
   useEffect(() => {
-    handleSearch()
+    // 🔧 CORREÇÃO: Envolver busca inicial com startTransition
+    startTransition(() => {
+      handleSearch()
+    })
   }, [])
-
-  // Filtrar produtos digitais quando products mudar
-  useEffect(() => {
-    const digitals = products.filter(p => p.isDigital)
-    setDigitalProducts(digitals)
-  }, [products])
 
   const handleSearch = () => {
     clearError()
@@ -61,64 +66,9 @@ export const MarketplacePage: FC = () => {
 
     if (activeTab === 'products') {
       searchProducts(searchQuery, filters)
-    } else if (activeTab === 'businesses') {
+    } else {
       searchBusinesses(searchQuery, filters)
-    } else if (activeTab === 'digitais') {
-      searchProducts(searchQuery, { ...filters, isDigital: true })
     }
-  }
-
-  const handleSearchInput = (value: string) => {
-    setSearchQuery(value)
-  }
-
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      startTransition(() => {
-        handleSearch()
-      })
-    }
-  }
-
-  const handleCategoryChange = (category: string | null) => {
-    startTransition(() => {
-      setSelectedCategory(category)
-      setTimeout(() => handleSearch(), 0)
-    })
-  }
-
-  const handleTabChange = (tab: string) => {
-    startTransition(() => {
-      setActiveTab(tab)
-      setTimeout(() => {
-        if (tab === 'digitais') {
-          searchProducts(searchQuery, { 
-            category: selectedCategory || undefined,
-            priceMin: priceRange.min ? parseFloat(priceRange.min) : undefined,
-            priceMax: priceRange.max ? parseFloat(priceRange.max) : undefined,
-            isDigital: true 
-          })
-        } else {
-          handleSearch()
-        }
-      }, 0)
-    })
-  }
-
-  const handleFiltersApply = () => {
-    startTransition(() => {
-      handleSearch()
-    })
-  }
-
-  const handleFiltersClear = () => {
-    startTransition(() => {
-      setSelectedCategory(null)
-      setPriceRange({ min: '', max: '' })
-      setSearchQuery('')
-      setSortBy('relevance')
-      setTimeout(() => handleSearch(), 0)
-    })
   }
 
   const handleLoadMore = () => {
@@ -130,63 +80,121 @@ export const MarketplacePage: FC = () => {
 
     if (activeTab === 'products') {
       loadMoreProducts(searchQuery, filters)
-    } else if (activeTab === 'businesses') {
+    } else {
       loadMoreBusinesses(searchQuery, filters)
-    } else if (activeTab === 'digitais') {
-      loadMoreProducts(searchQuery, { ...filters, isDigital: true })
     }
   }
 
   const handleAddToCart = async (productId: string) => {
     const success = await addToCart(productId)
-    // TODO: Show toast notification
+    if (success) {
+      // TODO: Show toast notification
+    }
+  }
+
+  // 🔧 CORREÇÃO: Handler de busca com startTransition
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value)
+    // Não dispara busca automática para evitar suspense em cada keystroke
+  }
+
+  // 🔧 CORREÇÃO: Handler de enter com startTransition
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      startTransition(() => {
+        handleSearch()
+      })
+    }
+  }
+
+  // 🔧 CORREÇÃO: Handler de mudança de categoria com startTransition
+  const handleCategoryChange = (category: string | null) => {
+    startTransition(() => {
+      setSelectedCategory(category)
+      // Auto-busca após mudança de categoria
+      setTimeout(() => handleSearch(), 0)
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de mudança de tab com startTransition
+  const handleTabChange = (tab: string) => {
+    startTransition(() => {
+      setActiveTab(tab)
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de filtros com startTransition
+  const handleFiltersApply = () => {
+    startTransition(() => {
+      handleSearch()
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de limpeza de filtros com startTransition
+  const handleFiltersClear = () => {
+    startTransition(() => {
+      setSelectedCategory(null)
+      setPriceRange({ min: '', max: '' })
+      setSearchQuery('')
+      setSortBy('relevance')
+      // Auto-busca após limpar filtros
+      setTimeout(() => handleSearch(), 0)
+    })
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             🛒 Marketplace Bazari
           </h1>
           <p className="text-gray-600">
-            Descubra produtos, serviços e negócios na economia descentralizada
+            Descubra produtos e serviços incríveis na economia descentralizada
           </p>
+          {/* 🔧 INDICADOR DE PENDING STATE */}
+          {isPending && (
+            <div className="mt-2">
+              <Badge variant="secondary">Atualizando...</Badge>
+            </div>
+          )}
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 mb-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar produtos, serviços ou negócios..."
-                value={searchQuery}
-                onChange={(e) => handleSearchInput(e.target.value)}
-                onKeyPress={handleSearchKeyPress}
-                className="w-full"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleFiltersApply} loading={isPending}>
-                <Icons.Search className="w-4 h-4 mr-2" />
+        {/* Busca e Filtros */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="space-y-4">
+            {/* Barra de Busca */}
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar produtos, serviços ou negócios..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchInput(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  icon={<Icons.Search className="w-5 h-5" />}
+                />
+              </div>
+              
+              <Button 
+                onClick={() => startTransition(() => handleSearch())} 
+                loading={isLoading || isPending}
+              >
                 Buscar
               </Button>
-              <Button 
-                variant="outline" 
+              
+              <Button
+                variant="secondary"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Icons.Filter className="w-4 h-4 mr-2" />
                 Filtros
               </Button>
             </div>
-          </div>
 
-          {/* Filtros Expandidos */}
-          {showFilters && (
-            <div className="border-t pt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Filtros Expandidos */}
+            {showFilters && (
+              <div className="border-t pt-4 space-y-4">
                 {/* Categoria */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -198,21 +206,26 @@ export const MarketplacePage: FC = () => {
                   />
                 </div>
 
-                {/* Preço */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Faixa de Preço
-                  </label>
-                  <div className="flex gap-2">
+                {/* Faixa de Preço */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Preço Mínimo
+                    </label>
                     <Input
                       type="number"
-                      placeholder="Min"
+                      placeholder="0"
                       value={priceRange.min}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Preço Máximo
+                    </label>
                     <Input
                       type="number"
-                      placeholder="Max"
+                      placeholder="1000"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
                     />
@@ -235,26 +248,26 @@ export const MarketplacePage: FC = () => {
                     <option value="newest">Mais Recente</option>
                   </Select>
                 </div>
-              </div>
 
-              {/* Ações dos Filtros */}
-              <div className="flex space-x-3">
-                <Button onClick={handleFiltersApply} size="sm" loading={isPending}>
-                  Aplicar Filtros
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleFiltersClear}
-                >
-                  Limpar
-                </Button>
+                {/* Ações dos Filtros */}
+                <div className="flex space-x-3">
+                  <Button onClick={handleFiltersApply} size="sm" loading={isPending}>
+                    Aplicar Filtros
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleFiltersClear}
+                  >
+                    Limpar
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Tabs - Linha 292 aproximadamente */}
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8">
           <TabsList>
             <TabsTrigger value="products">
@@ -264,10 +277,6 @@ export const MarketplacePage: FC = () => {
             <TabsTrigger value="businesses">
               <Icons.Building className="w-4 h-4 mr-2" />
               Negócios ({businesses.length})
-            </TabsTrigger>
-            <TabsTrigger value="digitais">
-              <Icons.Zap className="w-4 h-4 mr-2" />
-              Digitais ({digitalProducts.length})
             </TabsTrigger>
           </TabsList>
 
@@ -359,79 +368,29 @@ export const MarketplacePage: FC = () => {
               </>
             )}
           </TabsContent>
-
-          {/* Digitais - Linha 415 aproximadamente */}
-          <TabsContent value="digitais">
-            {/* Hero Section */}
-            <div className="bg-gradient-to-r from-primary-600 to-secondary-500 rounded-lg p-8 mb-8 text-white">
-              <div className="max-w-3xl">
-                <h2 className="text-3xl font-bold mb-4">
-                  Compre, use e revenda seus ativos digitais
-                </h2>
-                <p className="text-xl opacity-90 mb-6">
-                  Produtos digitais tokenizados com propriedade real e royalties para criadores
-                </p>
-                <Link to="/marketplace/digitais">
-                  <Button size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
-                    <Icons.ArrowRight className="w-5 h-5 mr-2" />
-                    Explorar Digitais
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p className="text-red-800">{error}</p>
-              </div>
-            )}
-
-            {/* Preview de produtos digitais */}
-            {digitalProducts.length === 0 && !isLoading && !isPending ? (
-              <div className="text-center py-12">
-                <Icons.Zap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhum produto digital encontrado
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Explore nossa crescente coleção de ativos digitais tokenizados
-                </p>
-                <Link to="/marketplace/digitais/criar">
-                  <Button>
-                    <Icons.Plus className="w-4 h-4 mr-2" />
-                    Criar Produto Digital
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                  {digitalProducts.slice(0, 8).map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={handleAddToCart}
-                      showDigitalBadges={true}
-                    />
-                  ))}
-                </div>
-
-                {digitalProducts.length > 8 && (
-                  <div className="text-center">
-                    <Link to="/marketplace/digitais/lista">
-                      <Button variant="outline" size="lg">
-                        Ver Todos os Produtos Digitais
-                        <Icons.ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
         </Tabs>
 
+        {/* Loading overlay quando pending */}
+        {isPending && (
+          <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-4 shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+                <span className="text-gray-700">Processando...</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+// 🎯 COMPONENTE PRINCIPAL COM SUSPENSE BOUNDARY
+export const MarketplacePage: FC = () => {
+  return (
+    <Suspense fallback={<MarketplaceLoader />}>
+      <MarketplaceContent />
+    </Suspense>
   )
 }

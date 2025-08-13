@@ -2,6 +2,8 @@ git checkout -B main && git add -A && (HUSKY=0 git commit -m "chore: subir todos
 
 zip -r bazari-super-app.zip . -x "node_modules/*" ".git/*" ".sh/*" ".txt/*" "dist/*" "build/*" ".next/*" ".cache/*" "*.zip"
 
+zip -r libervia-ia.zip . -x "node_modules/*" "venv/*" ".git/*" ".sh/*" ".txt/*" "dist/*" "build/*" ".next/*" ".cache/*" "*.zip"
+
 chmod +x fix-profile-routes.sh && ./fix-profile-routes.sh
 
 

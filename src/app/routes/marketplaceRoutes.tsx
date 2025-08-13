@@ -2,14 +2,23 @@ import { lazy, Suspense } from 'react'
 import { RouteObject } from 'react-router-dom'
 import { AuthGuard } from '@shared/guards/AuthGuard'
 
-// Lazy load das páginas
+// Páginas existentes
 const MarketplacePage = lazy(() => import('@pages/marketplace/MarketplacePage').then(m => ({ default: m.MarketplacePage })))
 const ProductDetailPage = lazy(() => import('@pages/marketplace/ProductDetailPage').then(m => ({ default: m.ProductDetailPage })))
 const BusinessDetailPage = lazy(() => import('@pages/marketplace/BusinessDetailPage').then(m => ({ default: m.BusinessDetailPage })))
 const CreateBusinessPage = lazy(() => import('@pages/marketplace/CreateBusinessPage').then(m => ({ default: m.CreateBusinessPage })))
 const CreateProductPage = lazy(() => import('@pages/marketplace/CreateProductPage').then(m => ({ default: m.CreateProductPage })))
 
-// 🎯 ERROR BOUNDARY LOCAL PARA MARKETPLACE
+// 🆕 Páginas digitais
+const DigitalHome = lazy(() => import('@pages/marketplace/digital/DigitalHome').then(m => ({ default: m.DigitalHome })))
+const DigitalList = lazy(() => import('@pages/marketplace/digital/DigitalList').then(m => ({ default: m.DigitalList })))
+const DigitalPDP = lazy(() => import('@pages/marketplace/digital/DigitalPDP').then(m => ({ default: m.DigitalPDP })))
+const DigitalMine = lazy(() => import('@pages/marketplace/digital/DigitalMine').then(m => ({ default: m.DigitalMine })))
+const DigitalCreateWizard = lazy(() => import('@pages/marketplace/digital/DigitalCreateWizard').then(m => ({ default: m.default })))
+
+
+
+// Error boundary específico para marketplace
 const MarketplaceErrorBoundary = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
     <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
@@ -42,7 +51,7 @@ const MarketplaceErrorBoundary = () => (
   </div>
 )
 
-// 🎯 LOADING FALLBACK PARA ROTAS LAZY
+// Loading fallback para rotas lazy
 const RouteLoader = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
     <div className="text-center">
@@ -53,12 +62,11 @@ const RouteLoader = () => (
 )
 
 export const marketplaceRoutes: RouteObject[] = [
-  // Marketplace principal (público)
   {
     path: 'marketplace',
-    // 🔧 CORREÇÃO: Error boundary específico apenas para o marketplace
     errorElement: <MarketplaceErrorBoundary />,
     children: [
+      // Marketplace principal (público)
       {
         index: true,
         element: (
@@ -66,7 +74,6 @@ export const marketplaceRoutes: RouteObject[] = [
             <MarketplacePage />
           </Suspense>
         ),
-        // 🔧 Error boundary adicional na rota principal do marketplace
         errorElement: <MarketplaceErrorBoundary />
       },
       
@@ -82,14 +89,14 @@ export const marketplaceRoutes: RouteObject[] = [
       
       // Detalhes do negócio (público)
       {
-        path: 'business/:id',
+        path: 'business/:idOrSlug',
         element: (
           <Suspense fallback={<RouteLoader />}>
             <BusinessDetailPage />
           </Suspense>
         )
       },
-      
+            
       // Criar negócio (protegido)
       {
         path: 'create-business',
@@ -109,6 +116,52 @@ export const marketplaceRoutes: RouteObject[] = [
           <Suspense fallback={<RouteLoader />}>
             <AuthGuard>
               <CreateProductPage />
+            </AuthGuard>
+          </Suspense>
+        )
+      },
+
+      // 🆕 SUB-ROTAS DIGITAIS
+      {
+        path: 'digitais',
+        element: (
+          <Suspense fallback={<RouteLoader />}>
+            <DigitalHome />
+          </Suspense>
+        )
+      },
+      {
+        path: 'digitais/lista',
+        element: (
+          <Suspense fallback={<RouteLoader />}>
+            <DigitalList />
+          </Suspense>
+        )
+      },
+      {
+        path: 'digitais/produto/:id',
+        element: (
+          <Suspense fallback={<RouteLoader />}>
+            <DigitalPDP />
+          </Suspense>
+        )
+      },
+      {
+        path: 'digitais/minhas',
+        element: (
+          <Suspense fallback={<RouteLoader />}>
+            <AuthGuard>
+              <DigitalMine />
+            </AuthGuard>
+          </Suspense>
+        )
+      },
+      {
+        path: 'digitais/criar',
+        element: (
+          <Suspense fallback={<RouteLoader />}>
+            <AuthGuard>
+              <DigitalCreateWizard />
             </AuthGuard>
           </Suspense>
         )

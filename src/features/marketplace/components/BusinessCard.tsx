@@ -151,7 +151,7 @@ export const BusinessCard: FC<BusinessCardProps> = ({
 
         {/* Ações */}
         <div className="flex space-x-2">
-          <Link to={`/marketplace/business/${business.id}`} className="flex-1">
+          <Link to={`/marketplace/business/${business.slug ?? business.id}`} className="flex-1">
             <Button size="sm" className="w-full">
               Ver Loja
             </Button>

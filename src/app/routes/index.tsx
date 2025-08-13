@@ -4,8 +4,8 @@ import { AuthGuard } from '@shared/guards/AuthGuard'
 import { Layout } from '@shared/components/Layout'
 import { authRoutes } from './authRoutes'
 import { profileRoutes } from './profileRoutes'
-// ❌ REMOVIDO TEMPORARIAMENTE - será implementado na ETAPA 5
 import { marketplaceRoutes } from './marketplaceRoutes'
+import { searchRoutes } from './searchRoutes'
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
@@ -54,6 +54,9 @@ export const router = createBrowserRouter([
       
       // Rotas de marketplace (importadas)
       ...marketplaceRoutes,
+
+      // Rotas de busca (importadas)
+      ...searchRoutes,
 
       // ❌ COMENTADO TEMPORARIAMENTE - será implementado na ETAPA 5
       // Rotas de marketplace (importadas)

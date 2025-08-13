@@ -60,6 +60,15 @@ export interface Product {
   // Metadata
   createdAt: Date
   updatedAt: Date
+
+royaltiesPct?: number              // 0–25
+  license?: 'lifetime' | 'days30' | 'days90'
+  onchain?: { 
+    tokenId: string
+    txHash?: string
+    chain: 'BazariChain' 
+  }
+
 }
 
 export interface ProductImage {

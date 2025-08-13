@@ -1,5 +1,6 @@
 import { FC, useState } from 'react'
 import { CategoryService, Category } from '../data/categories'
+const categoryService = new CategoryService()
 import { Select } from '@shared/ui/Select'
 import { Badge } from '@shared/ui/Badge'
 
@@ -13,18 +14,21 @@ interface CategorySelectorProps {
 export const CategorySelector: FC<CategorySelectorProps> = ({
   selectedCategory,
   onCategoryChange,
-  showFullPath = false,
-  placeholder = "Selecione uma categoria"
+  showFullPath = true,
+  placeholder = 'Selecione uma categoria'
 }) => {
   const [level1, setLevel1] = useState<string>('')
   const [level2, setLevel2] = useState<string>('')
   const [level3, setLevel3] = useState<string>('')
   const [level4, setLevel4] = useState<string>('')
 
-  const topCategories = CategoryService.getTopLevelCategories()
-  const level2Categories = level1 ? CategoryService.getChildCategories(level1) : []
-  const level3Categories = level2 ? CategoryService.getChildCategories(level2) : []
-  const level4Categories = level3 ? CategoryService.getChildCategories(level3) : []
+  // 👇 Antes: CategoryService.getTopLevelCategories()
+  const topCategories: Category[] = categoryService.getRootCategories()
+
+  // 👇 Antes: CategoryService.getChildCategories(...)
+  const level2Categories = level1 ? categoryService.getChildren(level1) : []
+  const level3Categories = level2 ? categoryService.getChildren(level2) : []
+  const level4Categories = level3 ? categoryService.getChildren(level3) : []
 
   const handleLevel1Change = (value: string) => {
     setLevel1(value)
@@ -54,7 +58,7 @@ export const CategorySelector: FC<CategorySelectorProps> = ({
 
   const getSelectedPath = () => {
     if (!selectedCategory) return []
-    return CategoryService.getCategoryPath(selectedCategory)
+    return categoryService.getCategoryPath(selectedCategory)
   }
 
   return (
@@ -94,11 +98,11 @@ export const CategorySelector: FC<CategorySelectorProps> = ({
         {/* Nível 3 */}
         {level3Categories.length > 0 && (
           <Select
-            label="Especialização"
+            label="Segmento"
             value={level3}
             onChange={(e) => handleLevel3Change(e.target.value)}
           >
-            <option value="">Selecione uma especialização</option>
+            <option value="">Selecione um segmento</option>
             {level3Categories.map(category => (
               <option key={category.id} value={category.id}>
                 {category.icon} {category.name}

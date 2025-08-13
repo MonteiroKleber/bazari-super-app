@@ -1,6 +1,9 @@
-import { Product, Service, CartItem } from '@entities/product'
-import { Business } from '@entities/business'
-import { CategoryService } from '../data/categories'
+// src/features/marketplace/services/marketplaceService.ts
+// Serviço principal do marketplace com integração de categorias
+
+import { Product, Business } from '@entities'
+import { CartItem } from '@entities/product'
+import { CategoryService, categories } from '../data/categories'
 
 interface SearchFilters {
   category?: string
@@ -11,672 +14,685 @@ interface SearchFilters {
   isTokenized?: boolean
   isVerified?: boolean
   tags?: string[]
+  isDigital?: boolean
 }
 
-interface SearchResults<T> {
+interface SearchResult<T> {
   items: T[]
   total: number
+  hasMore: boolean
   page: number
   limit: number
-  hasMore: boolean
 }
 
 class MarketplaceService {
-  private readonly storageKeys = {
-    businesses: 'bazari-businesses',
-    products: 'bazari-products',
-    services: 'bazari-services',
-    cart: 'bazari-cart'
+  private products: Product[] = []
+  private businesses: Business[] = []
+  private categoryService: CategoryService
+
+  constructor() {
+    this.categoryService = new CategoryService()
+    this.initializeMockData()
   }
 
   // ============================================
-  // BUSINESSES
+  // MÉTODOS DE PRODUTOS
   // ============================================
 
-  private getBusinesses(): Record<string, Business> {
-    try {
-      const stored = localStorage.getItem(this.storageKeys.businesses)
-      return stored ? JSON.parse(stored) : {}
-    } catch {
-      return {}
+  async searchProducts(
+    query: string = '', 
+    filters: SearchFilters = {},
+    page: number = 1,
+    limit: number = 20
+  ): Promise<SearchResult<Product>> {
+    let filteredProducts = this.products.filter(product => product.isActive)
+
+    // Filtro por query
+    if (query.trim()) {
+      const normalizedQuery = query.toLowerCase().trim()
+      filteredProducts = filteredProducts.filter(product =>
+        product.name.toLowerCase().includes(normalizedQuery) ||
+        product.description.toLowerCase().includes(normalizedQuery) ||
+        product.tags.some(tag => tag.toLowerCase().includes(normalizedQuery))
+      )
+    }
+
+    // Filtros específicos
+    if (filters.category) {
+      filteredProducts = filteredProducts.filter(product => {
+        // Verifica categoria exata e subcategorias
+        const categoryPath = this.categoryService.getCategoryPath(product.category)
+        return categoryPath.some(cat => cat.id === filters.category)
+      })
+    }
+
+    if (filters.priceMin !== undefined) {
+      filteredProducts = filteredProducts.filter(product => product.price >= filters.priceMin!)
+    }
+
+    if (filters.priceMax !== undefined) {
+      filteredProducts = filteredProducts.filter(product => product.price <= filters.priceMax!)
+    }
+
+    if (filters.rating !== undefined) {
+      filteredProducts = filteredProducts.filter(product => product.rating >= filters.rating!)
+    }
+
+    if (filters.isTokenized !== undefined) {
+      filteredProducts = filteredProducts.filter(product => product.isTokenized === filters.isTokenized)
+    }
+
+    if (filters.isDigital !== undefined) {
+      filteredProducts = filteredProducts.filter(product => product.isDigital === filters.isDigital)
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      filteredProducts = filteredProducts.filter(product =>
+        filters.tags!.some(tag => 
+          product.tags.some(productTag => 
+            productTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      )
+    }
+
+    // Paginação
+    const total = filteredProducts.length
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+
+    return {
+      items: paginatedProducts,
+      total,
+      hasMore: endIndex < total,
+      page,
+      limit
     }
   }
 
-  private saveBusinesses(businesses: Record<string, Business>): void {
-    try {
-      localStorage.setItem(this.storageKeys.businesses, JSON.stringify(businesses))
-    } catch (error) {
-      console.error('Erro ao salvar negócios:', error)
-    }
+  async getProductById(id: string): Promise<Product | null> {
+    return this.products.find(product => product.id === id) || null
   }
 
-  async createBusiness(businessData: Omit<Business, 'id' | 'createdAt' | 'updatedAt'>): Promise<Business> {
-    try {
-      const businesses = this.getBusinesses()
-      const id = `business_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
-      const business: Business = {
-        ...businessData,
-        id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-
-      businesses[id] = business
-      this.saveBusinesses(businesses)
-      
-      return business
-    } catch (error) {
-      throw new Error(`Erro ao criar negócio: ${error}`)
+  async createProduct(productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'slug'>): Promise<Product> {
+    const newProduct: Product = {
+      ...productData,
+      id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
+
+    this.products.unshift(newProduct)
+    return newProduct
   }
 
-  async getBusiness(id: string): Promise<Business | null> {
-    try {
-      const businesses = this.getBusinesses()
-      return businesses[id] || null
-    } catch (error) {
-      console.error('Erro ao buscar negócio:', error)
-      return null
+  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
+    const index = this.products.findIndex(product => product.id === id)
+    if (index === -1) return null
+
+    this.products[index] = {
+      ...this.products[index],
+      ...updates,
+      updatedAt: new Date()
     }
+
+    return this.products[index]
   }
 
-  async updateBusiness(id: string, updates: Partial<Business>): Promise<Business> {
-    try {
-      const businesses = this.getBusinesses()
-      const business = businesses[id]
-      
-      if (!business) {
-        throw new Error('Negócio não encontrado')
-      }
+  async deleteProduct(id: string): Promise<boolean> {
+    const index = this.products.findIndex(product => product.id === id)
+    if (index === -1) return false
 
-      const updatedBusiness = {
-        ...business,
-        ...updates,
-        id,
-        updatedAt: new Date()
-      }
-
-      businesses[id] = updatedBusiness
-      this.saveBusinesses(businesses)
-      
-      return updatedBusiness
-    } catch (error) {
-      throw new Error(`Erro ao atualizar negócio: ${error}`)
-    }
+    this.products.splice(index, 1)
+    return true
   }
+
+  // ============================================
+  // MÉTODOS DE NEGÓCIOS
+  // ============================================
 
   async searchBusinesses(
     query: string = '',
     filters: SearchFilters = {},
     page: number = 1,
     limit: number = 20
-  ): Promise<SearchResults<Business>> {
-    try {
-      const businesses = Object.values(this.getBusinesses())
-      
-      let filtered = businesses.filter(business => business.isActive)
-      
-      // Filtro por texto
-      if (query.trim()) {
-        const searchTerm = query.toLowerCase()
-        filtered = filtered.filter(business =>
-          business.name.toLowerCase().includes(searchTerm) ||
-          business.description.toLowerCase().includes(searchTerm) ||
-          business.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-        )
-      }
+  ): Promise<SearchResult<Business>> {
+    let filteredBusinesses = this.businesses.filter(business => business.isActive)
 
-      // Filtros
-      if (filters.category) {
-        const categoryIds = [filters.category, ...CategoryService.getAllDescendants(filters.category).map(c => c.id)]
-        filtered = filtered.filter(business => categoryIds.includes(business.category.id))
-      }
+    // Filtro por query
+    if (query.trim()) {
+      const normalizedQuery = query.toLowerCase().trim()
+      filteredBusinesses = filteredBusinesses.filter(business =>
+        business.name.toLowerCase().includes(normalizedQuery) ||
+        business.description.toLowerCase().includes(normalizedQuery) ||
+        business.tags.some(tag => tag.toLowerCase().includes(normalizedQuery))
+      )
+    }
 
-      if (filters.location) {
-        filtered = filtered.filter(business =>
-          business.address.city.toLowerCase().includes(filters.location!.toLowerCase()) ||
-          business.address.state.toLowerCase().includes(filters.location!.toLowerCase())
-        )
-      }
-
-      if (filters.rating) {
-        filtered = filtered.filter(business => business.rating >= filters.rating!)
-      }
-
-      if (filters.isTokenized !== undefined) {
-        filtered = filtered.filter(business => business.isTokenized === filters.isTokenized)
-      }
-
-      if (filters.isVerified !== undefined) {
-        filtered = filtered.filter(business => business.isVerified === filters.isVerified)
-      }
-
-      if (filters.tags && filters.tags.length > 0) {
-        filtered = filtered.filter(business =>
-          filters.tags!.some(tag =>
-            business.tags.some(businessTag =>
-              businessTag.toLowerCase().includes(tag.toLowerCase())
-            )
-          )
-        )
-      }
-
-      // Ordenação
-      filtered.sort((a, b) => {
-        // Priorizar: featured > verified > rating > followers
-        if (a.isFeatured && !b.isFeatured) return -1
-        if (!a.isFeatured && b.isFeatured) return 1
-        if (a.isVerified && !b.isVerified) return -1
-        if (!a.isVerified && b.isVerified) return 1
-        if (a.rating !== b.rating) return b.rating - a.rating
-        return b.followers - a.followers
+    // Filtros específicos
+    if (filters.category) {
+      filteredBusinesses = filteredBusinesses.filter(business => {
+        const categoryPath = this.categoryService.getCategoryPath(business.category.id)
+        return categoryPath.some(cat => cat.id === filters.category)
       })
-
-      // Paginação
-      const start = (page - 1) * limit
-      const items = filtered.slice(start, start + limit)
-      
-      return {
-        items,
-        total: filtered.length,
-        page,
-        limit,
-        hasMore: start + limit < filtered.length
-      }
-    } catch (error) {
-      console.error('Erro na busca de negócios:', error)
-      return { items: [], total: 0, page, limit, hasMore: false }
     }
+
+    if (filters.isVerified !== undefined) {
+      filteredBusinesses = filteredBusinesses.filter(business => business.isVerified === filters.isVerified)
+    }
+
+    if (filters.isTokenized !== undefined) {
+      filteredBusinesses = filteredBusinesses.filter(business => business.isTokenized === filters.isTokenized)
+    }
+
+    if (filters.location) {
+      filteredBusinesses = filteredBusinesses.filter(business =>
+        business.address.city.toLowerCase().includes(filters.location!.toLowerCase()) ||
+        business.address.state.toLowerCase().includes(filters.location!.toLowerCase())
+      )
+    }
+
+    // Paginação
+    const total = filteredBusinesses.length
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedBusinesses = filteredBusinesses.slice(startIndex, endIndex)
+
+    return {
+      items: paginatedBusinesses,
+      total,
+      hasMore: endIndex < total,
+      page,
+      limit
+    }
+  }
+
+  async getBusinessById(id: string): Promise<Business | null> {
+    return this.businesses.find(business => business.id === id) || null
+  }
+
+  async createBusiness(businessData: Omit<Business, 'id' | 'createdAt' | 'updatedAt'>): Promise<Business> {
+    const newBusiness: Business = {
+      ...businessData,
+      id: `business_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+
+    this.businesses.unshift(newBusiness)
+    return newBusiness
+  }
+
+  async updateBusiness(id: string, updates: Partial<Business>): Promise<Business | null> {
+    const index = this.businesses.findIndex(business => business.id === id)
+    if (index === -1) return null
+
+    this.businesses[index] = {
+      ...this.businesses[index],
+      ...updates,
+      updatedAt: new Date()
+    }
+
+    return this.businesses[index]
+  }
+
+  async deleteBusiness(id: string): Promise<boolean> {
+    const index = this.businesses.findIndex(business => business.id === id)
+    if (index === -1) return false
+
+    this.businesses.splice(index, 1)
+    return true
   }
 
   // ============================================
-  // PRODUCTS
+  // MÉTODOS ESPECÍFICOS PARA DIGITAIS
   // ============================================
 
-  private getProducts(): Record<string, Product> {
-    try {
-      const stored = localStorage.getItem(this.storageKeys.products)
-      return stored ? JSON.parse(stored) : {}
-    } catch {
-      return {}
-    }
-  }
-
-  private saveProducts(products: Record<string, Product>): void {
-    try {
-      localStorage.setItem(this.storageKeys.products, JSON.stringify(products))
-    } catch (error) {
-      console.error('Erro ao salvar produtos:', error)
-    }
-  }
-
-  async createProduct(productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'slug'>): Promise<Product> {
-    try {
-      const products = this.getProducts()
-      const id = `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const slug = this.generateSlug(productData.name)
-      
-      const product: Product = {
-        ...productData,
-        id,
-        slug,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-
-      products[id] = product
-      this.saveProducts(products)
-      
-      return product
-    } catch (error) {
-      throw new Error(`Erro ao criar produto: ${error}`)
-    }
-  }
-
-  async getProduct(id: string): Promise<Product | null> {
-    try {
-      const products = this.getProducts()
-      const product = products[id]
-      
-      if (product) {
-        // Incrementar visualizações
-        product.views = (product.views || 0) + 1
-        products[id] = product
-        this.saveProducts(products)
-      }
-      
-      return product || null
-    } catch (error) {
-      console.error('Erro ao buscar produto:', error)
-      return null
-    }
-  }
-
-  async getProductsByBusiness(businessId: string): Promise<Product[]> {
-    try {
-      const products = Object.values(this.getProducts())
-      return products.filter(product => product.businessId === businessId && product.isActive)
-    } catch (error) {
-      console.error('Erro ao buscar produtos do negócio:', error)
-      return []
-    }
-  }
-
-  async searchProducts(
+  async searchDigitalProducts(
     query: string = '',
     filters: SearchFilters = {},
     page: number = 1,
     limit: number = 20
-  ): Promise<SearchResults<Product>> {
-    try {
-      const products = Object.values(this.getProducts())
-      
-      let filtered = products.filter(product => product.isActive)
-      
-      // Filtro por texto
-      if (query.trim()) {
-        const searchTerm = query.toLowerCase()
-        filtered = filtered.filter(product =>
-          product.name.toLowerCase().includes(searchTerm) ||
-          product.description.toLowerCase().includes(searchTerm) ||
-          product.shortDescription?.toLowerCase().includes(searchTerm) ||
-          product.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-        )
-      }
+  ): Promise<SearchResult<Product>> {
+    return this.searchProducts(query, { ...filters, isDigital: true }, page, limit)
+  }
 
-      // Filtros
-      if (filters.category) {
-        filtered = filtered.filter(product => product.category === filters.category)
-      }
+  async getFeaturedDigitalProducts(limit: number = 8): Promise<Product[]> {
+    const result = await this.searchProducts('', { isDigital: true }, 1, limit * 2)
+    return result.items.filter(product => product.isFeatured).slice(0, limit)
+  }
 
-      if (filters.priceMin !== undefined) {
-        filtered = filtered.filter(product => product.price >= filters.priceMin!)
-      }
-
-      if (filters.priceMax !== undefined) {
-        filtered = filtered.filter(product => product.price <= filters.priceMax!)
-      }
-
-      if (filters.rating) {
-        filtered = filtered.filter(product => product.rating >= filters.rating!)
-      }
-
-      if (filters.isTokenized !== undefined) {
-        filtered = filtered.filter(product => product.isTokenized === filters.isTokenized)
-      }
-
-      // Ordenação
-      filtered.sort((a, b) => {
-        // Priorizar: featured > rating > sales > views
-        if (a.isFeatured && !b.isFeatured) return -1
-        if (!a.isFeatured && b.isFeatured) return 1
-        if (a.rating !== b.rating) return b.rating - a.rating
-        if (a.totalSales !== b.totalSales) return b.totalSales - a.totalSales
-        return b.views - a.views
-      })
-
-      // Paginação
-      const start = (page - 1) * limit
-      const items = filtered.slice(start, start + limit)
-      
-      return {
-        items,
-        total: filtered.length,
-        page,
-        limit,
-        hasMore: start + limit < filtered.length
-      }
-    } catch (error) {
-      console.error('Erro na busca de produtos:', error)
-      return { items: [], total: 0, page, limit, hasMore: false }
-    }
+  async getDigitalProductsByCategory(categoryId: string, limit: number = 12): Promise<Product[]> {
+    const result = await this.searchProducts('', { 
+      category: categoryId, 
+      isDigital: true 
+    }, 1, limit)
+    return result.items
   }
 
   // ============================================
-  // CART
+  // MÉTODOS DE CATEGORIAS
   // ============================================
 
-  private getCart(userAddress: string): CartItem[] {
-    try {
-      const stored = localStorage.getItem(`${this.storageKeys.cart}_${userAddress}`)
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
+  getCategoryService(): CategoryService {
+    return this.categoryService
   }
 
-  private saveCart(userAddress: string, items: CartItem[]): void {
-    try {
-      localStorage.setItem(`${this.storageKeys.cart}_${userAddress}`, JSON.stringify(items))
-    } catch (error) {
-      console.error('Erro ao salvar carrinho:', error)
-    }
+  async getCategories() {
+    return this.categoryService.list()
   }
 
-  async addToCart(userAddress: string, productId: string, quantity: number = 1): Promise<CartItem[]> {
-    try {
-      const product = await this.getProduct(productId)
-      if (!product) {
-        throw new Error('Produto não encontrado')
-      }
-
-      const cart = this.getCart(userAddress)
-      const existingItem = cart.find(item => item.productId === productId)
-
-      if (existingItem) {
-        existingItem.quantity += quantity
-      } else {
-        const cartItem: CartItem = {
-          id: `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          productId,
-          businessId: product.businessId,
-          quantity,
-          price: product.price,
-          addedAt: new Date()
-        }
-        cart.push(cartItem)
-      }
-
-      this.saveCart(userAddress, cart)
-      return cart
-    } catch (error) {
-      throw new Error(`Erro ao adicionar ao carrinho: ${error}`)
-    }
+  async getCategoryById(id: string) {
+    return this.categoryService.getById(id)
   }
 
-  async removeFromCart(userAddress: string, itemId: string): Promise<CartItem[]> {
-    try {
-      const cart = this.getCart(userAddress)
-      const filtered = cart.filter(item => item.id !== itemId)
-      this.saveCart(userAddress, filtered)
-      return filtered
-    } catch (error) {
-      throw new Error(`Erro ao remover do carrinho: ${error}`)
-    }
+  async getDigitalCategories() {
+    return this.categoryService.getDigitalCategories()
   }
 
-  async updateCartItem(userAddress: string, itemId: string, quantity: number): Promise<CartItem[]> {
-    try {
-      const cart = this.getCart(userAddress)
-      const item = cart.find(item => item.id === itemId)
-      
-      if (item) {
-        if (quantity <= 0) {
-          return this.removeFromCart(userAddress, itemId)
-        }
-        item.quantity = quantity
-        this.saveCart(userAddress, cart)
-      }
-      
-      return cart
-    } catch (error) {
-      throw new Error(`Erro ao atualizar item do carrinho: ${error}`)
-    }
+  async getPhysicalCategories() {
+    return this.categoryService.getPhysicalCategories()
   }
 
-  async getCartItems(userAddress: string): Promise<CartItem[]> {
-    return this.getCart(userAddress)
+ 
+// ============================================
+// CARRINHO (em memória)
+// ============================================
+
+private carts: Map<string, CartItem[]> = new Map()
+
+async getCartItems(userAddress: string): Promise<CartItem[]> {
+  return this.carts.get(userAddress) || []
+}
+
+async addToCart(userAddress: string, productId: string, quantity: number = 1): Promise<CartItem[]> {
+  const product = await this.getProductById(productId)
+  if (!product) return this.getCartItems(userAddress)
+
+  const cart = [...(this.carts.get(userAddress) || [])]
+  const existing = cart.find(i => i.productId === productId)
+
+  if (existing) {
+    existing.quantity += quantity
+    existing.price = product.price
+  } else {
+    cart.push({
+      id: `${productId}-${Date.now()}`,
+      productId,
+      businessId: product.businessId,
+      quantity,
+      price: product.price,
+      addedAt: new Date()
+    })
   }
 
-  async clearCart(userAddress: string): Promise<void> {
-    this.saveCart(userAddress, [])
+  this.carts.set(userAddress, cart)
+  return cart
+}
+
+async removeFromCart(userAddress: string, itemId: string): Promise<CartItem[]> {
+  const cart = [...(this.carts.get(userAddress) || [])]
+  const next = cart.filter(i => i.id !== itemId)
+  this.carts.set(userAddress, next)
+  return next
+}
+
+async updateCartItem(userAddress: string, itemId: string, quantity: number): Promise<CartItem[]> {
+  const cart = [...(this.carts.get(userAddress) || [])]
+  const item = cart.find(i => i.id === itemId)
+  if (item) {
+    item.quantity = Math.max(1, quantity)
   }
+  this.carts.set(userAddress, cart)
+  return cart
+}
+
+async clearCart(userAddress: string): Promise<void> {
+  this.carts.set(userAddress, [])
+}
 
   // ============================================
-  // UTILS
+  // INICIALIZAÇÃO DE DADOS MOCK
   // ============================================
 
-  private generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-  }
-
-  // ============================================
-  // ANALYTICS
-  // ============================================
-
-  async getMarketplaceStats(): Promise<{
-    totalBusinesses: number
-    totalProducts: number
-    totalServices: number
-    categoriesWithProducts: number
-    averageRating: number
-  }> {
-    try {
-      const businesses = Object.values(this.getBusinesses())
-      const products = Object.values(this.getProducts())
-      
-      const totalBusinesses = businesses.filter(b => b.isActive).length
-      const totalProducts = products.filter(p => p.isActive).length
-      
-      const categoriesWithProducts = new Set(products.map(p => p.category)).size
-      
-      const avgRating = products.length > 0 
-        ? products.reduce((sum, p) => sum + p.rating, 0) / products.length
-        : 0
-
-      return {
-        totalBusinesses,
-        totalProducts,
-        totalServices: 0, // TODO: implementar services
-        categoriesWithProducts,
-        averageRating: Number(avgRating.toFixed(1))
-      }
-    } catch (error) {
-      console.error('Erro ao calcular estatísticas:', error)
-      return {
-        totalBusinesses: 0,
-        totalProducts: 0,
-        totalServices: 0,
-        categoriesWithProducts: 0,
-        averageRating: 0
-      }
-    }
-  }
-
-  // ============================================
-  // MOCK DATA INITIALIZATION
-  // ============================================
-
-  async initializeMockData(): Promise<void> {
-    try {
-      const businesses = this.getBusinesses()
-      const products = this.getProducts()
-      
-      // Se já tem dados, não inicializar
-      if (Object.keys(businesses).length > 0 || Object.keys(products).length > 0) {
-        return
-      }
-
-      // Criar negócios mock
-      const mockBusinesses = await this.createMockBusinesses()
-      
-      // Criar produtos mock
-      for (const business of mockBusinesses) {
-        await this.createMockProducts(business.id)
-      }
-      
-    } catch (error) {
-      console.error('Erro ao inicializar dados mock:', error)
-    }
-  }
-
-  private async createMockBusinesses(): Promise<Business[]> {
-    const mockData = [
+  async initializeMockData() {
+    // Mock Businesses
+    const mockBusinesses = [
       {
-        name: 'TechCorp Solutions',
-        description: 'Desenvolvimento de soluções tecnológicas inovadoras em blockchain e Web3',
-        category: CategoryService.getCategory('blockchain')!,
+        name: 'Tech Solutions Brasil',
+        description: 'Empresa de desenvolvimento de software especializada em blockchain e Web3',
+        ownerAddress: '0x1234...abcd',
+        category: {
+          id: 'desenvolvimento-software',
+          name: 'Desenvolvimento de Software',
+          level: 2,
+          parent: 'tecnologia',
+          children: [],
+          isActive: true,
+          order: 1
+        },
+        email: 'contato@techsolutions.com.br',
+        phone: '+55 11 99999-9999',
+        website: 'https://techsolutions.com.br',
         address: {
-          street: 'Rua das Tecnologias, 123',
+          street: 'Av. Paulista, 1000',
           city: 'São Paulo',
           state: 'SP',
           country: 'Brasil',
-          zipCode: '01234-567'
+          zipCode: '01310-100'
         },
+        isTokenized: true,
+        tokenId: 'business_001',
         rating: 4.8,
         reviewCount: 127,
-        totalSales: 89,
-        followers: 1234,
-        tags: ['Blockchain', 'Smart Contracts', 'DeFi', 'Web3'],
-        isTokenized: true,
+        totalSales: 523,
         verificationLevel: 'verified' as const,
+        isActive: true,
         isVerified: true,
-        isFeatured: true
-      },
-      {
-        name: 'Café da Vila',
-        description: 'Café artesanal com grãos selecionados e ambiente aconchegante',
-        category: CategoryService.getCategory('restaurantes')!,
-        address: {
-          street: 'Rua do Café, 456',
-          city: 'Rio de Janeiro',
-          state: 'RJ',
-          country: 'Brasil',
-          zipCode: '20000-000'
-        },
-        rating: 4.5,
-        reviewCount: 89,
-        totalSales: 156,
-        followers: 567,
-        tags: ['Café', 'Artesanal', 'Orgânico', 'Local'],
-        isTokenized: false,
-        verificationLevel: 'basic' as const,
-        isVerified: true,
-        isFeatured: false
+        isFeatured: true,
+        followers: 1250,
+        tags: ['blockchain', 'web3', 'desenvolvimento', 'tecnologia']
       },
       {
         name: 'Arte Digital Studio',
-        description: 'Criação de NFTs exclusivos e arte digital personalizada',
-        category: CategoryService.getCategory('nft-art')!,
-        address: {
-          street: 'Av. da Arte, 789',
-          city: 'Belo Horizonte',
-          state: 'MG',
-          country: 'Brasil',
-          zipCode: '30000-000'
+        description: 'Estúdio especializado em criação de NFTs e arte digital tokenizada',
+        ownerAddress: '0x5678...efgh',
+        category: {
+          id: 'design-grafico',
+          name: 'Design Gráfico',
+          level: 2,
+          parent: 'tecnologia',
+          children: [],
+          isActive: true,
+          order: 2
         },
-        rating: 4.9,
-        reviewCount: 67,
-        totalSales: 45,
-        followers: 890,
-        tags: ['NFT', 'Arte Digital', 'Ilustração', 'Design'],
+        email: 'contato@artedigital.studio',
+        address: {
+          street: 'Rua das Flores, 500',
+          city: 'Rio de Janeiro',
+          state: 'RJ',
+          country: 'Brasil',
+          zipCode: '22070-000'
+        },
         isTokenized: true,
+        tokenId: 'business_002',
+        rating: 4.9,
+        reviewCount: 89,
+        totalSales: 256,
         verificationLevel: 'premium' as const,
+        isActive: true,
         isVerified: true,
-        isFeatured: true
+        isFeatured: true,
+        followers: 850,
+        tags: ['nft', 'arte', 'design', 'digital']
       }
     ]
 
-    const createdBusinesses: Business[] = []
-    
-    for (const data of mockData) {
-      const business = await this.createBusiness({
-        ...data,
-        ownerAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
-        email: `contato@${data.name.toLowerCase().replace(/\s+/g, '')}.com`,
-        phone: '+55 11 99999-9999',
-        website: `https://${data.name.toLowerCase().replace(/\s+/g, '')}.com`,
-        isActive: true,
-        socialLinks: {}
-      })
-      createdBusinesses.push(business)
-    }
-    
-    return createdBusinesses
-  }
-
-  private async createMockProducts(businessId: string): Promise<void> {
-    const business = await this.getBusiness(businessId)
-    if (!business) return
-
-    const productsByCategory: Record<string, any[]> = {
-      'blockchain': [
-        {
-          name: 'Smart Contract Audit',
-          description: 'Auditoria completa de smart contracts com relatório detalhado de segurança',
-          price: 2500,
-          category: 'smart-contracts',
-          tags: ['Audit', 'Security', 'Solidity']
-        },
-        {
-          name: 'DeFi Protocol Development',
-          description: 'Desenvolvimento de protocolo DeFi personalizado com interface web',
-          price: 15000,
-          category: 'defi',
-          tags: ['DeFi', 'Protocol', 'Frontend']
-        }
-      ],
-      'restaurantes': [
-        {
-          name: 'Café Especial Brasileiro',
-          description: 'Grãos 100% arábica torrados artesanalmente',
-          price: 45,
-          category: 'produtos-alimenticios',
-          tags: ['Café', 'Arábica', 'Artesanal']
-        },
-        {
-          name: 'Combo Café da Manhã',
-          description: 'Café + croissant + suco natural',
-          price: 25,
-          category: 'combo',
-          tags: ['Combo', 'Café da Manhã']
-        }
-      ],
-      'nft-art': [
-        {
-          name: 'Avatar Collection #001',
-          description: 'Coleção exclusiva de avatares pixelados únicos',
-          price: 100,
-          category: 'pfp-collections',
-          tags: ['Avatar', 'Pixel Art', 'Collection'],
-          isNFT: true
-        },
-        {
-          name: 'Abstract Art Series',
-          description: 'Série de arte abstrata generativa limitada',
-          price: 250,
-          category: 'generative-art',
-          tags: ['Abstract', 'Generative', 'Limited'],
-          isNFT: true
-        }
-      ]
+    // Criar businesses mock
+    for (const businessData of mockBusinesses) {
+      await this.createBusiness(businessData)
     }
 
-    const categoryProducts = productsByCategory[business.category.id] || []
-    
-    for (const productData of categoryProducts) {
-      await this.createProduct({
-        ...productData,
-        businessId,
-        shortDescription: productData.description.substring(0, 80) + '...',
+    // Mock Products Físicos
+    const mockPhysicalProducts = [
+      {
+        businessId: this.businesses[0].id,
+        name: 'Consultoria em Blockchain',
+        description: 'Consultoria especializada em implementação de soluções blockchain para empresas',
+        shortDescription: 'Consultoria blockchain empresarial',
+        price: 500,
         currency: 'BZR' as const,
+        category: 'blockchain',
+        tags: ['consultoria', 'blockchain', 'empresas'],
         images: [{
           id: 'img1',
-          url: `https://picsum.photos/400/400?random=${Date.now()}`,
-          alt: productData.name,
+          url: 'https://picsum.photos/400/300?random=1',
+          alt: 'Consultoria Blockchain',
           isMain: true,
           order: 1
         }],
-        stock: Math.floor(Math.random() * 50) + 10,
+        stock: 10,
         isUnlimited: false,
         trackInventory: true,
+        isTokenized: false,
+        isNFT: false,
         isActive: true,
-        isFeatured: Math.random() > 0.7,
-        isDigital: business.category.id === 'blockchain' || business.category.id === 'nft-art',
-        isTokenized: productData.isNFT || false,
-        isNFT: productData.isNFT || false,
-        rating: 4 + Math.random(),
-        reviewCount: Math.floor(Math.random() * 50) + 5,
-        totalSales: Math.floor(Math.random() * 100) + 10,
-        views: Math.floor(Math.random() * 500) + 50
+        isFeatured: false,
+        isDigital: false,
+        rating: 4.7,
+        reviewCount: 23,
+        totalSales: 45,
+        views: 234
+      }
+    ]
+
+    // Mock Products Digitais
+    const mockDigitalProducts = [
+      {
+        businessId: this.businesses[0].id,
+        name: 'Curso Completo de Web3 Development',
+        description: 'Aprenda desenvolvimento Web3 do zero ao avançado com este curso tokenizado que inclui certificado NFT e acesso vitalício ao conteúdo.',
+        shortDescription: 'Curso completo de Web3 com certificado NFT',
+        price: 299,
+        currency: 'BZR' as const,
+        category: 'cursos-tokenizados',
+        tags: ['Web3', 'Blockchain', 'Desenvolvimento', 'NFT'],
+        images: [{
+          id: 'img1',
+          url: 'https://picsum.photos/400/300?random=digital1',
+          alt: 'Curso Web3',
+          isMain: true,
+          order: 1
+        }],
+        stock: 0,
+        isUnlimited: true,
+        trackInventory: false,
+        isTokenized: true,
+        isNFT: true,
+        isActive: true,
+        isFeatured: true,
+        isDigital: true,
+        rating: 4.9,
+        reviewCount: 156,
+        totalSales: 523,
+        views: 2340,
+        // Campos específicos digitais
+        royaltiesPct: 10,
+        license: 'lifetime' as const,
+        onchain: { 
+          tokenId: 'digit_curso_001',
+          chain: 'BazariChain' as const,
+          txHash: '0x1234567890abcdef1234567890abcdef12345678'
+        }
+      },
+      {
+        businessId: this.businesses[0].id,
+        name: 'E-book: DeFi Strategies 2024',
+        description: 'Guia completo de estratégias DeFi tokenizado com updates exclusivos e acesso à comunidade privada de traders.',
+        shortDescription: 'Guia definitivo de estratégias DeFi',
+        price: 99,
+        currency: 'BZR' as const,
+        category: 'ebooks-digitais',
+        tags: ['DeFi', 'Trading', 'Estratégias', 'Finanças'],
+        images: [{
+          id: 'img2',
+          url: 'https://picsum.photos/400/300?random=digital2',
+          alt: 'E-book DeFi',
+          isMain: true,
+          order: 1
+        }],
+        stock: 0,
+        isUnlimited: true,
+        trackInventory: false,
+        isTokenized: true,
+        isNFT: false,
+        isActive: true,
+        isFeatured: false,
+        isDigital: true,
+        rating: 4.6,
+        reviewCount: 89,
+        totalSales: 234,
+        views: 1456,
+        royaltiesPct: 5,
+        license: 'days90' as const,
+        onchain: {
+          tokenId: 'digit_ebook_002', 
+          chain: 'BazariChain' as const,
+          txHash: '0x2345678901bcdef01234567890abcdef23456789'
+        }
+      },
+      {
+        businessId: this.businesses[1].id,
+        name: 'NFT Art: Cosmic Collection #47',
+        description: 'Arte digital exclusiva da coleção Cosmic, criada por artista verificado com direitos de revenda na DEX.',
+        shortDescription: 'Arte digital exclusiva colecionável',
+        price: 0.8,
+        currency: 'BZR' as const,
+        category: 'colecionaveis-digitais',
+        tags: ['NFT', 'Arte', 'Colecionável', 'Exclusivo'],
+        images: [{
+          id: 'img3',
+          url: 'https://picsum.photos/400/300?random=digital3',
+          alt: 'NFT Cosmic',
+          isMain: true,
+          order: 1
+        }],
+        stock: 1,
+        isUnlimited: false,
+        trackInventory: true,
+        isTokenized: true,
+        isNFT: true,
+        isActive: true,
+        isFeatured: true,
+        isDigital: true,
+        rating: 4.8,
+        reviewCount: 34,
+        totalSales: 1,
+        views: 567,
+        royaltiesPct: 7.5,
+        license: 'lifetime' as const,
+        onchain: {
+          tokenId: 'digit_nft_003',
+          chain: 'BazariChain' as const,
+          txHash: '0x3456789012cdef012345678901bcdef034567890'
+        }
+      },
+      {
+        businessId: this.businesses[0].id,
+        name: 'Software: Trading Bot Pro',
+        description: 'Bot de trading automatizado para DEX com estratégias avançadas e dashboard em tempo real.',
+        shortDescription: 'Bot de trading automatizado profissional',
+        price: 450,
+        currency: 'BZR' as const,
+        category: 'software',
+        tags: ['Software', 'Trading', 'Bot', 'Automação'],
+        images: [{
+          id: 'img4',
+          url: 'https://picsum.photos/400/300?random=digital4',
+          alt: 'Trading Bot',
+          isMain: true,
+          order: 1
+        }],
+        stock: 100,
+        isUnlimited: false,
+        trackInventory: true,
+        isTokenized: true,
+        isNFT: false,
+        isActive: true,
+        isFeatured: false,
+        isDigital: true,
+        rating: 4.4,
+        reviewCount: 67,
+        totalSales: 89,
+        views: 1234,
+        royaltiesPct: 15,
+        license: 'days30' as const,
+        onchain: {
+          tokenId: 'digit_soft_004',
+          chain: 'BazariChain' as const
+        }
+      },
+      {
+        businessId: this.businesses[1].id,
+        name: 'Sound Pack: Synthwave Collection',
+        description: 'Coleção de samples e loops synthwave tokenizada com licença comercial inclusa.',
+        shortDescription: 'Pack de samples synthwave profissional',
+        price: 75,
+        currency: 'BZR' as const,
+        category: 'midias-digitais',
+        tags: ['Música', 'Samples', 'Synthwave', 'Produção'],
+        images: [{
+          id: 'img5',
+          url: 'https://picsum.photos/400/300?random=digital5',
+          alt: 'Sound Pack',
+          isMain: true,
+          order: 1
+        }],
+        stock: 50,
+        isUnlimited: false,
+        trackInventory: true,
+        isTokenized: true,
+        isNFT: false,
+        isActive: true,
+        isFeatured: true,
+        isDigital: true,
+        rating: 4.7,
+        reviewCount: 42,
+        totalSales: 127,
+        views: 890,
+        royaltiesPct: 12,
+        license: 'lifetime' as const,
+        onchain: {
+          tokenId: 'digit_sound_006',
+          chain: 'BazariChain' as const
+        }
+      }
+    ]
+
+    // Criar produtos mock
+    const allProducts = [...mockPhysicalProducts, ...mockDigitalProducts]
+    for (const productData of allProducts) {
+      await this.createProduct({
+        ...productData,
+        slug: productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        createdAt: new Date(),
+        updatedAt: new Date()
       })
+    }
+
+    console.log(`✅ Marketplace inicializado com ${this.businesses.length} negócios e ${this.products.length} produtos`)
+  }
+
+  // ============================================
+  // MÉTODOS DE ESTATÍSTICAS
+  // ============================================
+
+  async getStats() {
+    const digitalProducts = this.products.filter(p => p.isDigital)
+    const physicalProducts = this.products.filter(p => !p.isDigital)
+    
+    return {
+      products: {
+        total: this.products.length,
+        digital: digitalProducts.length,
+        physical: physicalProducts.length,
+        tokenized: this.products.filter(p => p.isTokenized).length
+      },
+      businesses: {
+        total: this.businesses.length,
+        verified: this.businesses.filter(b => b.isVerified).length,
+        tokenized: this.businesses.filter(b => b.isTokenized).length
+      },
+      categories: this.categoryService.getStats()
     }
   }
 }
 
+// Instância singleton
 export const marketplaceService = new MarketplaceService()
+
+// Exports para compatibilidade
+export default marketplaceService
+export { SearchFilters, SearchResult }
