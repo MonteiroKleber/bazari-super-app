@@ -4,14 +4,13 @@ import { AuthGuard } from '@shared/guards/AuthGuard'
 import { Layout } from '@shared/components/Layout'
 import { authRoutes } from './authRoutes'
 import { profileRoutes } from './profileRoutes'
+// ❌ REMOVIDO TEMPORARIAMENTE - será implementado na ETAPA 5
 import { marketplaceRoutes } from './marketplaceRoutes'
-
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
 const NotFoundPage = lazy(() => import('@pages/NotFound').then(m => ({ default: m.default })))
 const DashboardPage = lazy(() => import('@pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
-
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-white">
@@ -56,10 +55,15 @@ export const router = createBrowserRouter([
       // Rotas de marketplace (importadas)
       ...marketplaceRoutes,
 
-      // TODO: Adicionar outras rotas das próximas etapas
-      
-      // ...walletRoutes,
-      // ...daoRoutes,
+      // ❌ COMENTADO TEMPORARIAMENTE - será implementado na ETAPA 5
+      // Rotas de marketplace (importadas)
+      // ...marketplaceRoutes,
+
+      // TODO: Adicionar outras rotas das próximas etapas quando implementadas
+      // ...walletRoutes,      // ETAPA 6
+      // ...socialRoutes,      // ETAPA 7  
+      // ...daoRoutes,         // ETAPA 8
+      // ...workRoutes,        // ETAPA 9
 
       // Página 404
       {

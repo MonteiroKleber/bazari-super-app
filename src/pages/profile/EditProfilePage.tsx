@@ -1,38 +1,22 @@
-import { FC, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@features/auth/hooks/useAuth'
+import { FC, useState } from 'react'
 
 export const EditProfilePage: FC = () => {
-  const navigate = useNavigate()
-  const { isAuthenticated, currentAccount, user } = useAuth()
-  
   const [formData, setFormData] = useState({
-    name: user?.name || currentAccount?.name || '',
-    bio: '',
-    location: '',
-    website: ''
+    name: 'João Silva',
+    bio: 'Desenvolvedor apaixonado por Web3 e tecnologias descentralizadas.',
+    location: 'São Paulo, Brasil',
+    website: 'https://joaosilva.dev'
   })
 
-  useEffect(() => {
-    // em producao tem que verificar se o usuario esta autenticado
-    if (!isAuthenticated) {
-      navigate('/auth/login')
-      return
-    }
-  }, [isAuthenticated, navigate])
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handleSave = () => {
-    // TODO: Implementar salvamento
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
     console.log('Salvando perfil:', formData)
-    navigate('/profile')
+    // TODO: Implementar salvamento
+    window.location.href = '/profile'
   }
 
-  const handleCancel = () => {
-    navigate('/profile')
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   return (
@@ -40,42 +24,40 @@ export const EditProfilePage: FC = () => {
       <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={handleCancel}
+          <a
+            href="/profile"
             className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <svg className="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Voltar para Perfil
-          </button>
+          </a>
           <h1 className="text-3xl font-bold text-gray-900">Editar Perfil</h1>
         </div>
 
         {/* Form */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Avatar Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Foto do Perfil
+                Foto de Perfil
               </label>
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                  <span className="text-xl">👤</span>
                 </div>
                 <button
                   type="button"
-                  className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Alterar Foto
                 </button>
               </div>
             </div>
 
-            {/* Name */}
+            {/* Nome */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nome
@@ -83,8 +65,8 @@ export const EditProfilePage: FC = () => {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                onChange={(e) => handleChange('name', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Seu nome completo"
               />
             </div>
@@ -92,18 +74,18 @@ export const EditProfilePage: FC = () => {
             {/* Bio */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bio
+                Biografia
               </label>
               <textarea
                 value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
+                onChange={(e) => handleChange('bio', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Conte um pouco sobre você..."
               />
             </div>
 
-            {/* Location */}
+            {/* Localização */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Localização
@@ -111,9 +93,9 @@ export const EditProfilePage: FC = () => {
               <input
                 type="text"
                 value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Cidade, Estado"
+                onChange={(e) => handleChange('location', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Cidade, País"
               />
             </div>
 
@@ -125,28 +107,26 @@ export const EditProfilePage: FC = () => {
               <input
                 type="url"
                 value={formData.website}
-                onChange={(e) => handleInputChange('website', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="https://..."
+                onChange={(e) => handleChange('website', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="https://seusite.com"
               />
             </div>
 
             {/* Actions */}
-            <div className="flex space-x-4 pt-4">
+            <div className="flex space-x-4 pt-6">
               <button
-                type="button"
-                onClick={handleCancel}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
+                type="submit"
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Salvar Alterações
+              </button>
+              <a
+                href="/profile"
+                className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-center"
               >
                 Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors"
-              >
-                Salvar
-              </button>
+              </a>
             </div>
           </form>
         </div>
@@ -154,3 +134,5 @@ export const EditProfilePage: FC = () => {
     </div>
   )
 }
+
+export default EditProfilePage

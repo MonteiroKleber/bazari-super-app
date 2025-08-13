@@ -2,8 +2,188 @@ git checkout -B main && git add -A && (HUSKY=0 git commit -m "chore: subir todos
 
 zip -r bazari-super-app.zip . -x "node_modules/*" ".git/*" ".sh/*" ".txt/*" "dist/*" "build/*" ".next/*" ".cache/*" "*.zip"
 
+chmod +x fix-profile-routes.sh && ./fix-profile-routes.sh
+
+
+script-marketplace-02.sh
+
+chmod +x script-marketplace-02.sh && ./script-marketplace-02.sh
+
+
 569f1056...f020ad55
 5f55c6af...d15ac20e	
+
+
+
+eu quero que vc crie um prompt pra eu mandar a claudi fazer um trabalho pra mim. etou com o seguinte problema. o cabecalho que deveria aparecer nas paginas internas como perfil e markeplace por exemplo , esta aparecendo na home, fazendo a home ficar com 2 cabecalhos . resolver esse problema ,, concentrar apenas nesse problema . nao fazer nada mais alem disso.
+
+
+
+
+
+Prompt para Claude (escopo: módulo Profile / erro Spinner):
+
+    Contexto do projeto: React + Vite + TailwindCSS + React Router.
+    Escopo fechado: Corrigir apenas o erro do módulo Profile (página principal MyProfilePage.tsx). Não alterar nada em outros módulos (Marketplace, Dashboard, Auth, DAO, Wallet, Layout global, providers, stores globais, rotas globais ou estilos globais).
+
+    Erro atual (console/Vite):
+
+[plugin:vite:import-analysis] Failed to resolve import "./Spinner" from "src/shared/ui/index.ts". Does the file exist?
+/src/shared/ui/index.ts:11:24
+8  |  export { Tooltip } from "./Tooltip";
+9  |  export { Loading } from "./Loading";
+10 |  export { Spinner } from "./Spinner";
+   |                           ^
+
+Tarefa (escopo fechado):
+Corrigir a falha de resolução do Spinner usada (direta ou indiretamente) por MyProfilePage.tsx, garantindo que o barrel src/shared/ui/index.ts só exporte componentes existentes ou que o componente Spinner seja criado/ajustado corretamente sem impactar outros módulos.
+
+Passos obrigatórios:
+
+    Varredura para localizar importações/uso do Spinner e do Loading dentro do módulo Profile e no barrel shared/ui:
+
+    rg -n --no-heading "Spinner" src
+    rg -n --no-heading "from\s+['\"]/src/shared/ui" src
+    rg -n --no-heading "MyProfilePage|Profile|Perfil" src
+    ls -la src/shared/ui
+
+    ➜ Entregar um relatório curto (arquivo:linha) com todos os pontos que importam Spinner e confirmar se existe o arquivo src/shared/ui/Spinner.tsx (ou .tsx/.ts/.jsx/.js correspondente).
+
+    Diagnóstico do barrel src/shared/ui/index.ts:
+
+        Se não existir o arquivo real do Spinner, remover a exportação quebrada do barrel ou criar o componente Spinner seguindo o padrão existente (ex.: mesmo estilo do Loading).
+
+        Se o arquivo existir em nome/ extensão diferente (ex.: spinner.tsx, Spinner.jsx), corrigir o caminho/nome na exportação do barrel.
+
+        Se MyProfilePage.tsx estiver importando Spinner mas o projeto padroniza Loading, trocar apenas nessa página ou no componente do módulo Profile que usa Spinner, mantendo a padronização interna.
+
+    Ajustes mínimos no Profile:
+
+        Corrigir importações apenas nos arquivos do módulo Profile que fazem uso de Spinner (ex.: MyProfilePage.tsx, subcomponentes do Profile).
+
+        Se optar por criar Spinner, faça-o em src/shared/ui/Spinner.tsx no padrão existente (com Tailwind e sem dependências novas).
+
+Arquivos prováveis para edição (mínimos):
+
+    src/shared/ui/index.ts (remover/ajustar export quebrada ou apontar para o arquivo correto)
+
+    src/shared/ui/Spinner.tsx (criar/ajustar se necessário)
+
+    src/modules/perfil/MyProfilePage.tsx (ou caminho equivalente) e quaisquer subcomponentes do módulo Profile que importem Spinner
+
+Restrições rígidas:
+
+    Não alterar rotas globais, Layout global, providers, stores globais, estilos globais.
+
+    Não mexer em módulos fora de Profile.
+
+    Não adicionar dependências novas.
+
+    Não renomear/realocar pastas fora do necessário para o Spinner.
+
+Critérios de aceitação:
+
+    O erro [vite:import-analysis] Failed to resolve import "./Spinner" from "src/shared/ui/index.ts" não ocorre mais.
+
+    MyProfilePage.tsx renderiza normalmente.
+
+    Se Spinner não existir no design system, a tela usa Loading (ou um Spinner criado localmente) sem quebrar outros módulos.
+
+    Somente arquivos do módulo Profile e o barrel src/shared/ui/index.ts (e opcionalmente src/shared/ui/Spinner.tsx) foram alterados.
+
+Entrega esperada:
+
+    Diffs apenas dos arquivos alterados.
+
+    Relatório da varredura (arquivo:linha) das ocorrências de Spinner e confirmação de existência do arquivo real.
+
+    Comentários curtos no código explicando a correção (1–2 linhas).
+
+    Confirmação de que nenhum outro módulo foi impactado.
+
+
+
+
+
+Prompt para Claude (escopo: somente Marketplace):
+
+    Contexto do projeto: React + Vite + TailwindCSS + React Router.
+    Os módulos Perfil, Dashboard e Auth estão funcionando corretamente.
+    O problema ocorre somente na página principal do Marketplace.
+
+    Erro atual (console):
+
+Unexpected Application Error!
+A component suspended while responding to synchronous input. This will cause the UI to be replaced with a loading indicator. To fix, updates that suspend should be wrapped with startTransition.
+
+throwException .../chunk-GKJBSOWT.js:14213:43
+handleError .../chunk-GKJBSOWT.js:19034:29
+renderRootSync .../chunk-GKJBSOWT.js:19119:26
+recoverFromConcurrentError .../chunk-GKJBSOWT.js:18736:42
+performSyncWorkOnRoot .../chunk-GKJBSOWT.js:18879:28
+flushSyncCallbacks .../chunk-GKJBSOWT.js:9119:30
+flushSync .../chunk-GKJBSOWT.js:18959:15
+scheduleRefresh .../chunk-GKJBSOWT.js:20004:22
+performReactRefresh/< @ /@react-refresh:228:17
+...
+💿 You can provide a better UX by providing your own ErrorBoundary or errorElement on your route.
+
+Tarefa (escopo fechado):
+Corrigir somente esse erro na página principal do Marketplace, sem afetar nenhum outro módulo, rota, provider, store ou estilo global.
+
+O que precisa ser feito (qualquer combinação a seguir, desde que resolva o problema):
+
+    Identificar onde uma atualização de estado acionada por input síncrono (ex.: filtros, busca, tabs, categorias) está causando suspense (lazy/data fetch).
+
+    Envolver essas atualizações que podem suspender com startTransition (React 18):
+
+    import { useTransition } from 'react';
+    const [isPending, startTransition] = useTransition();
+    // Exemplo em handlers:
+    const onChange = (value) => {
+      startTransition(() => {
+        setQuery(value); // ou setFilters, setCategory, etc.
+      });
+    };
+
+    Garantir que qualquer lazy load ou busca de dados disparada por interação do usuário não rode no caminho síncrono do evento. Se necessário, mover fetch/lazy para useEffect ou camadas que não sejam acionadas diretamente no handler síncrono.
+
+    Adicionar/ajustar boundary local ao Marketplace (apenas nessa rota):
+
+        Usar <Suspense fallback={...}> ao redor de trechos que suspendem.
+
+        Opcional: definir errorElement apenas na rota do Marketplace, sem tocar nas demais rotas.
+
+    Não introduzir dependências novas. Não alterar rotas globais, layout global, providers, stores globais, nem arquivos de outros módulos.
+
+Arquivos prováveis (exemplos):
+
+    src/modules/marketplace/MarketplacePage.jsx (ou .tsx)
+
+    Subcomponentes do Marketplace que reagem a input do usuário: ex. CategoriesNavigation.jsx, FiltersBar.jsx, SearchBox.jsx, ProductsGrid.jsx
+
+    Definição da rota do Marketplace onde, se necessário, pode-se adicionar errorElement somente nessa rota.
+
+Critérios de aceitação (obrigatórios):
+
+    O erro “A component suspended while responding to synchronous input…” não ocorre mais ao interagir com filtros/busca/categorias no Marketplace.
+
+    A UI do Marketplace permanece responsiva (se isPending for usado, exibir feedback somente local).
+
+    Nenhuma mudança nos módulos Perfil, Dashboard e Auth (funcionam exatamente como antes).
+
+    Nenhuma alteração em rotas globais, layout global, providers, stores globais, estilização global ou dependências.
+
+    Caso adicionado, o errorElement fica restrito à rota do Marketplace.
+
+Entrega esperada:
+
+    Diffs dos arquivos somente do módulo Marketplace (e, se necessário, o trecho da rota do Marketplace).
+
+    Comentários curtos indicando onde foi aplicado startTransition e/ou Suspense e por quê.
+
+    Breve nota confirmando que nada fora do Marketplace foi modificado.
+
 
 
 

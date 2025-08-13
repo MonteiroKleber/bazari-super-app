@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, useTransition, Suspense } from 'react'
 import { useMarketplace } from '@features/marketplace/hooks/useMarketplace'
 import { CategorySelector } from '@features/marketplace/components/CategorySelector'
 import { ProductCard } from '@features/marketplace/components/ProductCard'
@@ -10,8 +10,18 @@ import { Badge } from '@shared/ui/Badge'
 import { Icons } from '@shared/ui/Icons'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@shared/ui/Tabs'
 
+// 🎯 SUSPENSE LOADING FALLBACK LOCAL (apenas para Marketplace)
+const MarketplaceLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Carregando marketplace...</p>
+    </div>
+  </div>
+)
 
-export const MarketplacePage: FC = () => {
+// 🎯 COMPONENTE PRINCIPAL COM SUSPENSE BOUNDARY
+const MarketplaceContent: FC = () => {
   const {
     products,
     businesses,
@@ -27,6 +37,9 @@ export const MarketplacePage: FC = () => {
     clearError
   } = useMarketplace()
 
+  // 🔧 CORREÇÃO PRINCIPAL: useTransition para atualizações que podem suspender
+  const [isPending, startTransition] = useTransition()
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState('relevance')
@@ -34,9 +47,12 @@ export const MarketplacePage: FC = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('products')
 
-  // Executar busca inicial
+  // Executar busca inicial de forma assíncrona
   useEffect(() => {
-    handleSearch()
+    // 🔧 CORREÇÃO: Envolver busca inicial com startTransition
+    startTransition(() => {
+      handleSearch()
+    })
   }, [])
 
   const handleSearch = () => {
@@ -76,6 +92,56 @@ export const MarketplacePage: FC = () => {
     }
   }
 
+  // 🔧 CORREÇÃO: Handler de busca com startTransition
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value)
+    // Não dispara busca automática para evitar suspense em cada keystroke
+  }
+
+  // 🔧 CORREÇÃO: Handler de enter com startTransition
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      startTransition(() => {
+        handleSearch()
+      })
+    }
+  }
+
+  // 🔧 CORREÇÃO: Handler de mudança de categoria com startTransition
+  const handleCategoryChange = (category: string | null) => {
+    startTransition(() => {
+      setSelectedCategory(category)
+      // Auto-busca após mudança de categoria
+      setTimeout(() => handleSearch(), 0)
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de mudança de tab com startTransition
+  const handleTabChange = (tab: string) => {
+    startTransition(() => {
+      setActiveTab(tab)
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de filtros com startTransition
+  const handleFiltersApply = () => {
+    startTransition(() => {
+      handleSearch()
+    })
+  }
+
+  // 🔧 CORREÇÃO: Handler de limpeza de filtros com startTransition
+  const handleFiltersClear = () => {
+    startTransition(() => {
+      setSelectedCategory(null)
+      setPriceRange({ min: '', max: '' })
+      setSearchQuery('')
+      setSortBy('relevance')
+      // Auto-busca após limpar filtros
+      setTimeout(() => handleSearch(), 0)
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -87,6 +153,12 @@ export const MarketplacePage: FC = () => {
           <p className="text-gray-600">
             Descubra produtos e serviços incríveis na economia descentralizada
           </p>
+          {/* 🔧 INDICADOR DE PENDING STATE */}
+          {isPending && (
+            <div className="mt-2">
+              <Badge variant="secondary">Atualizando...</Badge>
+            </div>
+          )}
         </div>
 
         {/* Busca e Filtros */}
@@ -98,13 +170,16 @@ export const MarketplacePage: FC = () => {
                 <Input
                   placeholder="Buscar produtos, serviços ou negócios..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onChange={(e) => handleSearchInput(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
                   icon={<Icons.Search className="w-5 h-5" />}
                 />
               </div>
               
-              <Button onClick={handleSearch} loading={isLoading}>
+              <Button 
+                onClick={() => startTransition(() => handleSearch())} 
+                loading={isLoading || isPending}
+              >
                 Buscar
               </Button>
               
@@ -126,17 +201,16 @@ export const MarketplacePage: FC = () => {
                     Categoria
                   </label>
                   <CategorySelector
-                    selectedCategory={selectedCategory || undefined}
-                    onCategoryChange={setSelectedCategory}
-                    placeholder="Todas as categorias"
+                    value={selectedCategory}
+                    onChange={handleCategoryChange}
                   />
                 </div>
 
                 {/* Faixa de Preço */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preço Mínimo (BZR)
+                      Preço Mínimo
                     </label>
                     <Input
                       type="number"
@@ -145,47 +219,45 @@ export const MarketplacePage: FC = () => {
                       onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
                     />
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preço Máximo (BZR)
+                      Preço Máximo
                     </label>
                     <Input
                       type="number"
-                      placeholder="∞"
+                      placeholder="1000"
                       value={priceRange.max}
                       onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ordenar por
-                    </label>
-                    <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                      <option value="relevance">Relevância</option>
-                      <option value="price_asc">Menor Preço</option>
-                      <option value="price_desc">Maior Preço</option>
-                      <option value="rating">Melhor Avaliado</option>
-                      <option value="newest">Mais Recente</option>
-                    </Select>
-                  </div>
+                {/* Ordenação */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ordenar por
+                  </label>
+                  <Select
+                    value={sortBy}
+                    onChange={(value) => setSortBy(value)}
+                  >
+                    <option value="relevance">Relevância</option>
+                    <option value="price_asc">Menor Preço</option>
+                    <option value="price_desc">Maior Preço</option>
+                    <option value="rating">Melhor Avaliado</option>
+                    <option value="newest">Mais Recente</option>
+                  </Select>
                 </div>
 
                 {/* Ações dos Filtros */}
                 <div className="flex space-x-3">
-                  <Button onClick={handleSearch} size="sm">
+                  <Button onClick={handleFiltersApply} size="sm" loading={isPending}>
                     Aplicar Filtros
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => {
-                      setSelectedCategory(null)
-                      setPriceRange({ min: '', max: '' })
-                      setSearchQuery('')
-                      setSortBy('relevance')
-                    }}
+                    onClick={handleFiltersClear}
                   >
                     Limpar
                   </Button>
@@ -196,7 +268,7 @@ export const MarketplacePage: FC = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-8">
           <TabsList>
             <TabsTrigger value="products">
               <Icons.Package className="w-4 h-4 mr-2" />
@@ -216,7 +288,7 @@ export const MarketplacePage: FC = () => {
               </div>
             )}
 
-            {products.length === 0 && !isLoading ? (
+            {products.length === 0 && !isLoading && !isPending ? (
               <div className="text-center py-12">
                 <Icons.Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -261,7 +333,7 @@ export const MarketplacePage: FC = () => {
               </div>
             )}
 
-            {businesses.length === 0 && !isLoading ? (
+            {businesses.length === 0 && !isLoading && !isPending ? (
               <div className="text-center py-12">
                 <Icons.Building className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -298,14 +370,27 @@ export const MarketplacePage: FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando...</p>
+        {/* Loading overlay quando pending */}
+        {isPending && (
+          <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-4 shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+                <span className="text-gray-700">Processando...</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
     </div>
+  )
+}
+
+// 🎯 COMPONENTE PRINCIPAL COM SUSPENSE BOUNDARY
+export const MarketplacePage: FC = () => {
+  return (
+    <Suspense fallback={<MarketplaceLoader />}>
+      <MarketplaceContent />
+    </Suspense>
   )
 }
