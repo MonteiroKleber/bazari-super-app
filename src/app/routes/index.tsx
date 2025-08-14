@@ -1,3 +1,4 @@
+// src/app/routes/index.tsx
 import { createBrowserRouter } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { AuthGuard } from '@shared/guards/AuthGuard'
@@ -6,6 +7,7 @@ import { authRoutes } from './authRoutes'
 import { profileRoutes } from './profileRoutes'
 import { marketplaceRoutes } from './marketplaceRoutes'
 import { searchRoutes } from './searchRoutes'
+import { walletRoutes } from './walletRoutes'  // ✅ NOVA IMPORT DA WALLET
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
@@ -52,18 +54,16 @@ export const router = createBrowserRouter([
       // Rotas de perfil  
       ...profileRoutes,
       
-      // Rotas de marketplace (importadas)
+      // Rotas de marketplace
       ...marketplaceRoutes,
 
-      // Rotas de busca (importadas)
+      // Rotas de busca
       ...searchRoutes,
 
-      // ❌ COMENTADO TEMPORARIAMENTE - será implementado na ETAPA 5
-      // Rotas de marketplace (importadas)
-      // ...marketplaceRoutes,
+      // ✅ ROTAS DE WALLET - ETAPA 6 IMPLEMENTADA
+      ...walletRoutes,
 
       // TODO: Adicionar outras rotas das próximas etapas quando implementadas
-      // ...walletRoutes,      // ETAPA 6
       // ...socialRoutes,      // ETAPA 7  
       // ...daoRoutes,         // ETAPA 8
       // ...workRoutes,        // ETAPA 9

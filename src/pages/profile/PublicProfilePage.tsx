@@ -207,7 +207,7 @@ export const PublicProfilePage: FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F1E0] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <motion.div className="text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B0000] mx-auto mb-4" />
           <p className="text-[#1C1C1C]">Carregando perfil público...</p>
@@ -217,7 +217,7 @@ export const PublicProfilePage: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F1E0]">
+    <div className="min-h-screen bg-white">
       {/* HERO */}
       <motion.div
         className="relative"

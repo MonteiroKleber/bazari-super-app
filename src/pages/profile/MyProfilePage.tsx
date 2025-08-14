@@ -160,7 +160,7 @@ export const MyProfilePage: FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F1E0]">
+    <div className="min-h-screen bg-white">
       {/* ✅ HEADER/HERO COM CAPA */}
       <div className="relative">
         {/* Imagem de Capa */}
