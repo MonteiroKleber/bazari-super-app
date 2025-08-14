@@ -8,6 +8,7 @@ import { profileRoutes } from './profileRoutes'
 import { marketplaceRoutes } from './marketplaceRoutes'
 import { searchRoutes } from './searchRoutes'
 import { walletRoutes } from './walletRoutes'  // ✅ NOVA IMPORT DA WALLET
+import { socialRoutes } from './socialRoutes'
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
@@ -60,8 +61,11 @@ export const router = createBrowserRouter([
       // Rotas de busca
       ...searchRoutes,
 
-      // ✅ ROTAS DE WALLET - ETAPA 6 IMPLEMENTADA
+      // Rotas de carteira (wallet)
       ...walletRoutes,
+      
+      // Rotas de social
+      ...socialRoutes, 
 
       // TODO: Adicionar outras rotas das próximas etapas quando implementadas
       // ...socialRoutes,      // ETAPA 7  

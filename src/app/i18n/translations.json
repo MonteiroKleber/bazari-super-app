@@ -1087,6 +1087,339 @@
     "eletronicos": "Eletrônicos",
     "casa-decoracao": "Casa & Decoração",
     "beleza-bem-estar": "Beleza & Bem-estar"
+  },
+
+  "social": {
+    "feed": {
+      "pt": "Feed",
+      "en": "Feed",
+      "es": "Feed"
+    },
+    "create": {
+      "pt": "Criar Post",
+      "en": "Create Post",
+      "es": "Crear Publicación"
+    },
+    "notifications": {
+      "pt": "Notificações",
+      "en": "Notifications",
+      "es": "Notificaciones"
+    },
+    "timeline": {
+      "pt": "Timeline",
+      "en": "Timeline",
+      "es": "Cronología"
+    },
+    "like": {
+      "pt": "Curtir",
+      "en": "Like",
+      "es": "Me gusta"
+    },
+    "comment": {
+      "pt": "Comentar",
+      "en": "Comment",
+      "es": "Comentar"
+    },
+    "share": {
+      "pt": "Compartilhar",
+      "en": "Share",
+      "es": "Compartir"
+    },
+    "newPost": {
+      "pt": "O que você quer publicar?",
+      "en": "What do you want to post?",
+      "es": "¿Qué deseas publicar?"
+    },
+    "publish": {
+      "pt": "Publicar",
+      "en": "Publish",
+      "es": "Publicar"
+    },
+    "loading": {
+      "pt": "Carregando posts...",
+      "en": "Loading posts...",
+      "es": "Cargando publicaciones..."
+    },
+    "noPosts": {
+      "pt": "Nenhum post ainda",
+      "en": "No posts yet",
+      "es": "Aún no hay publicaciones"
+    },
+    "noPostsDescription": {
+      "pt": "Seja o primeiro a compartilhar algo! Crie seu primeiro post e comece a interagir com a comunidade Bazari.",
+      "en": "Be the first to share something! Create your first post and start interacting with the Bazari community.",
+      "es": "¡Sé el primero en compartir algo! Crea tu primera publicación y comienza a interactuar con la comunidad Bazari."
+    },
+    "createFirstPost": {
+      "pt": "Criar meu primeiro post",
+      "en": "Create my first post",
+      "es": "Crear mi primera publicación"
+    },
+    "loadMore": {
+      "pt": "Carregar mais posts",
+      "en": "Load more posts",
+      "es": "Cargar más publicaciones"
+    },
+    "allCaughtUp": {
+      "pt": "Você viu todos os posts!",
+      "en": "You've seen all posts!",
+      "es": "¡Has visto todas las publicaciones!"
+    },
+    "charactersRemaining": {
+      "pt": "caracteres restantes",
+      "en": "characters remaining",
+      "es": "caracteres restantes"
+    },
+    "nearLimit": {
+      "pt": "Próximo ao limite",
+      "en": "Near limit",
+      "es": "Cerca del límite"
+    },
+    "limitExceeded": {
+      "pt": "Limite excedido",
+      "en": "Limit exceeded",
+      "es": "Límite excedido"
+    },
+    "addMedia": {
+      "pt": "Mídia",
+      "en": "Media",
+      "es": "Multimedia"
+    },
+    "location": {
+      "pt": "Local",
+      "en": "Location",
+      "es": "Ubicación"
+    },
+    "tags": {
+      "pt": "Tags",
+      "en": "Tags",
+      "es": "Etiquetas"
+    },
+    "comingSoon": {
+      "pt": "Em breve",
+      "en": "Coming soon",
+      "es": "Próximamente"
+    },
+    "postTips": {
+      "pt": "Dicas para um bom post",
+      "en": "Tips for a good post",
+      "es": "Consejos para una buena publicación"
+    },
+    "useHashtags": {
+      "pt": "Use hashtags para aumentar o alcance",
+      "en": "Use hashtags to increase reach",
+      "es": "Usa hashtags para aumentar el alcance"
+    },
+    "addImages": {
+      "pt": "Adicione imagens para mais engajamento",
+      "en": "Add images for more engagement",
+      "es": "Añade imágenes para más participación"
+    },
+    "beAuthentic": {
+      "pt": "Seja autêntico e genuíno",
+      "en": "Be authentic and genuine",
+      "es": "Sé auténtico y genuino"
+    },
+    "interact": {
+      "pt": "Interaja com outros usuários",
+      "en": "Interact with other users",
+      "es": "Interactúa con otros usuarios"
+    },
+    "unreadNotifications": {
+      "pt": "nova",
+      "en": "new",
+      "es": "nueva"
+    },
+    "unreadNotificationsPlural": {
+      "pt": "novas",
+      "en": "new",
+      "es": "nuevas"
+    },
+    "markAllAsRead": {
+      "pt": "Marcar todas como lidas",
+      "en": "Mark all as read",
+      "es": "Marcar todas como leídas"
+    },
+    "backToFeed": {
+      "pt": "Voltar ao feed",
+      "en": "Back to feed",
+      "es": "Volver al feed"
+    },
+    "notificationCenter": {
+      "pt": "Centro de notificações",
+      "en": "Notification center",
+      "es": "Centro de notificaciones"
+    },
+    "allNotifications": {
+      "pt": "Todas",
+      "en": "All",
+      "es": "Todas"
+    },
+    "likes": {
+      "pt": "Curtidas",
+      "en": "Likes",
+      "es": "Me gusta"
+    },
+    "comments": {
+      "pt": "Comentários",
+      "en": "Comments",
+      "es": "Comentarios"
+    },
+    "followers": {
+      "pt": "Seguidores",
+      "en": "Followers",
+      "es": "Seguidores"
+    },
+    "shares": {
+      "pt": "Compartilhamentos",
+      "en": "Shares",
+      "es": "Compartidos"
+    },
+    "onlyUnread": {
+      "pt": "Apenas não lidas",
+      "en": "Only unread",
+      "es": "Solo no leídas"
+    },
+    "allClear": {
+      "pt": "Tudo em dia!",
+      "en": "All clear!",
+      "es": "¡Todo al día!"
+    },
+    "noUnreadNotifications": {
+      "pt": "Você não tem notificações não lidas no momento.",
+      "en": "You have no unread notifications at the moment.",
+      "es": "No tienes notificaciones sin leer en este momento."
+    },
+    "viewAllNotifications": {
+      "pt": "Ver todas as notificações",
+      "en": "View all notifications",
+      "es": "Ver todas las notificaciones"
+    },
+    "noNotificationsOfType": {
+      "pt": "Nenhuma notificação deste tipo",
+      "en": "No notifications of this type",
+      "es": "No hay notificaciones de este tipo"
+    },
+    "noNotifications": {
+      "pt": "Nenhuma notificação",
+      "en": "No notifications",
+      "es": "No hay notificaciones"
+    },
+    "notificationsDescription": {
+      "pt": "Quando outros usuários interagirem com seus posts, as notificações aparecerão aqui.",
+      "en": "When other users interact with your posts, notifications will appear here.",
+      "es": "Cuando otros usuarios interactúen con tus publicaciones, las notificaciones aparecerán aquí."
+    },
+    "blockchainTimeline": {
+      "pt": "Timeline Blockchain",
+      "en": "Blockchain Timeline",
+      "es": "Cronología Blockchain"
+    },
+    "activities": {
+      "pt": "atividades",
+      "en": "activities",
+      "es": "actividades"
+    },
+    "transfers": {
+      "pt": "transferências",
+      "en": "transfers",
+      "es": "transferencias"
+    },
+    "transactions": {
+      "pt": "transações",
+      "en": "transactions",
+      "es": "transacciones"
+    },
+    "activityType": {
+      "pt": "Tipo de atividade",
+      "en": "Activity type",
+      "es": "Tipo de actividad"
+    },
+    "period": {
+      "pt": "Período",
+      "en": "Period",
+      "es": "Período"
+    },
+    "last24h": {
+      "pt": "Últimas 24h",
+      "en": "Last 24h",
+      "es": "Últimas 24h"
+    },
+    "last7d": {
+      "pt": "Últimos 7 dias",
+      "en": "Last 7 days",
+      "es": "Últimos 7 días"
+    },
+    "last30d": {
+      "pt": "Últimos 30 dias",
+      "en": "Last 30 days",
+      "es": "Últimos 30 días"
+    },
+    "allPeriods": {
+      "pt": "Todas",
+      "en": "All",
+      "es": "Todos"
+    },
+    "noActivities": {
+      "pt": "Nenhuma atividade encontrada",
+      "en": "No activities found",
+      "es": "No se encontraron actividades"
+    },
+    "adjustFilters": {
+      "pt": "Tente ajustar os filtros para ver mais atividades.",
+      "en": "Try adjusting the filters to see more activities.",
+      "es": "Intenta ajustar los filtros para ver más actividades."
+    },
+    "activitiesDescription": {
+      "pt": "Suas atividades na blockchain aparecerão aqui conforme você usar a plataforma.",
+      "en": "Your blockchain activities will appear here as you use the platform.",
+      "es": "Tus actividades en blockchain aparecerán aquí mientras uses la plataforma."
+    },
+    "viewAllActivities": {
+      "pt": "Ver todas as atividades",
+      "en": "View all activities",
+      "es": "Ver todas las actividades"
+    },
+    "viewAllPeriods": {
+      "pt": "Ver todos os períodos",
+      "en": "View all periods",
+      "es": "Ver todos los períodos"
+    },
+    "goToWallet": {
+      "pt": "Ir para carteira",
+      "en": "Go to wallet",
+      "es": "Ir a la billetera"
+    },
+    "viewMarketplace": {
+      "pt": "Ver marketplace",
+      "en": "View marketplace",
+      "es": "Ver marketplace"
+    },
+    "aboutTimeline": {
+      "pt": "Sobre a Timeline:",
+      "en": "About Timeline:",
+      "es": "Acerca de la Cronología:"
+    },
+    "timelineDescription": {
+      "pt": "Todas as atividades são registradas de forma transparente na blockchain.",
+      "en": "All activities are transparently recorded on the blockchain.",
+      "es": "Todas las actividades se registran de forma transparente en la blockchain."
+    },
+    "verifyTransactions": {
+      "pt": "Você pode verificar qualquer transação usando o hash (TX) nos exploradores de blockchain.",
+      "en": "You can verify any transaction using the hash (TX) in blockchain explorers.",
+      "es": "Puedes verificar cualquier transacción usando el hash (TX) en exploradores de blockchain."
+    },
+    "tipNotifications": {
+      "pt": "Clique em uma notificação para marcá-la como lida automaticamente.",
+      "en": "Click on a notification to mark it as read automatically.",
+      "es": "Haz clic en una notificación para marcarla como leída automáticamente."
+    },
+    "tipFilters": {
+      "pt": "Use os filtros acima para organizar melhor suas notificações.",
+      "en": "Use the filters above to better organize your notifications.",
+      "es": "Usa los filtros de arriba para organizar mejor tus notificaciones."
+    }
   }
 
 }
