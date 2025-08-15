@@ -147,7 +147,7 @@ npm run lint:fix
 Desenvolvimento **incremental** completado em 9 etapas:
 
 ### ✅ **ETAPA 1** - Configuração Base e Infraestrutura (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Estrutura de pastas completa (monorepo Feature-Sliced)
@@ -164,7 +164,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Entidades base tipadas (User, Business, Product, etc.)
 
 ### ✅ **ETAPA 2** - Design System e Componentes Base (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Paleta de cores oficial implementada (#8B0000, #FFB300)
@@ -181,7 +181,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Dark mode suportado
 
 ### ✅ **ETAPA 3** - Autenticação e Gestão de Conta (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Configuração Zustand stores para estado global
@@ -198,7 +198,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Hooks de autenticação (useAuth)
 
 ### ✅ **ETAPA 4** - Perfil Tokenizado Básico (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Configuração IPFS client para armazenamento
@@ -214,7 +214,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Hooks especializados (useProfile)
 
 ### ✅ **ETAPA 5** - Marketplace Digital Base (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Sistema de categorias hierárquico (4 níveis)
@@ -231,7 +231,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Sistema de filtros avançados
 
 ### ✅ **ETAPA 6** - Wallet e Integração Substrate (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Configuração Polkadot.js API completa
@@ -247,7 +247,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Hooks especializados (useWallet)
 
 ### ✅ **ETAPA 7** - Rede Social Integrada (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Sistema de postagens completo:
@@ -264,7 +264,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Timeline de atividades personalizada
 
 ### ✅ **ETAPA 8** - DAO Governança e DEX (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] DAO Governança descentralizada:
@@ -282,7 +282,7 @@ Desenvolvimento **incremental** completado em 9 etapas:
 - [x] Sistema de delegação de votos
 
 ### ✅ **ETAPA 9** - Protocolo de Trabalho e Finalização (COMPLETA)
-**Duração:** 1 chat | **Status:** 🟢 **100% COMPLETA**
+**Duração:**  | **Status:** 🟢 **100% COMPLETA**
 
 **Deliverables concluídos:**
 - [x] Protocolo de Trabalho Descentralizado:
