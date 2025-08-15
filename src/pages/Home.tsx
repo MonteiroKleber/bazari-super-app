@@ -14,7 +14,7 @@ const Home = () => {
     // ✅ Envolver navegação com startTransition
     startTransition(() => {
       if (isAuthenticated) {
-        navigate("/profile");
+        navigate("/dashboard");
       } else {
         navigate("/auth/register");
       }
@@ -49,7 +49,7 @@ const Home = () => {
           <div className="flex items-center space-x-3">
             <span className="text-white">Olá, {user?.name || "Usuário"}</span>
             <button
-              onClick={() => startTransition(() => navigate("/profile"))}
+              onClick={() => startTransition(() => navigate("/dashboard"))}
               className="bg-white text-primary-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               Meu Perfil
