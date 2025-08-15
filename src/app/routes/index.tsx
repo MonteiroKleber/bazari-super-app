@@ -9,6 +9,8 @@ import { marketplaceRoutes } from './marketplaceRoutes'
 import { searchRoutes } from './searchRoutes'
 import { walletRoutes } from './walletRoutes'  // ✅ NOVA IMPORT DA WALLET
 import { socialRoutes } from './socialRoutes'
+import { daoRoutes } from './daoRoutes'      // ✅ NOVA IMPORT DAO
+import { dexRoutes } from './dexRoutes'      // ✅ NOVA IMPORT DEX
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
@@ -65,11 +67,15 @@ export const router = createBrowserRouter([
       ...walletRoutes,
       
       // Rotas de social
-      ...socialRoutes, 
+      ...socialRoutes,
+      
+      // Rotas de DAO
+      ...daoRoutes,         
 
-      // TODO: Adicionar outras rotas das próximas etapas quando implementadas
-      // ...socialRoutes,      // ETAPA 7  
-      // ...daoRoutes,         // ETAPA 8
+      // Rotas de DEX
+      ...dexRoutes,         
+
+      
       // ...workRoutes,        // ETAPA 9
 
       // Página 404

@@ -1,6 +1,35 @@
 {
   "common": {
 
+
+    "pending": "Pendente",
+    "confirmed": "Confirmado",
+    "failed": "Falhou",
+    "retry": "Tentar novamente",
+    "submit": "Enviar",
+    "view": "Ver",
+    "max": "MAX",
+    "balance": "Saldo",
+    "amount": "Quantidade",
+    "price": "Preço",
+    "total": "Total",
+    "percentage": "Porcentagem",
+    "date": "Data",
+    "time": "Hora",
+    "transaction": "Transação",
+    "block": "Bloco",
+    "hash": "Hash",
+    "status": "Status",
+    "type": "Tipo",
+    "description": "Descrição",
+    "details": "Detalhes",
+    "overview": "Visão Geral",
+    "history": "Histórico",
+    "settings": "Configurações",
+    "help": "Ajuda",
+    "documentation": "Documentação",
+    "support": "Suporte",
+
     "web3SuperApp": {
       "pt": "Super App Web3",
       "en": "Web3 Super App",
@@ -1420,6 +1449,117 @@
       "en": "Use the filters above to better organize your notifications.",
       "es": "Usa los filtros de arriba para organizar mejor tus notificaciones."
     }
+  },
+
+  "dao": {
+    "title": "Governança DAO",
+    "description": "Participe das decisões da Bazari DAO",
+    "stats": {
+      "totalProposals": "Total de Propostas",
+      "activeProposals": "Propostas Ativas", 
+      "totalVoters": "Votantes Únicos",
+      "averageParticipation": "Participação Média"
+    },
+    "proposal": {
+      "title": "Proposta",
+      "create": "Criar Proposta",
+      "vote": "Votar",
+      "execute": "Executar",
+      "details": "Ver Detalhes",
+      "states": {
+        "draft": "Rascunho",
+        "active": "Ativa",
+        "succeeded": "Aprovada",
+        "defeated": "Rejeitada",
+        "queued": "Na Fila",
+        "executed": "Executada"
+      },
+      "votes": {
+        "for": "A favor",
+        "against": "Contra", 
+        "abstain": "Abstenção"
+      },
+      "types": {
+        "general": "Proposta Geral",
+        "treasury": "Retirada do Tesouro",
+        "parameter": "Mudança de Parâmetros",
+        "upgrade": "Upgrade do Protocolo"
+      }
+    },
+    "treasury": {
+      "title": "Tesouro da DAO",
+      "balance": "Saldo",
+      "activity": "Atividades Recentes",
+      "inflow": "Entrada",
+      "outflow": "Saída",
+      "netFlow": "Fluxo Líquido"
+    },
+    "voting": {
+      "power": "Poder de Voto",
+      "requirement": "Você precisa de ZARI para votar",
+      "quorum": "Quórum",
+      "threshold": "Threshold",
+      "achieved": "Atingido",
+      "notAchieved": "Não atingido"
+    }
+  },
+  "dex": {
+    "title": "Bazari DEX",
+    "description": "Exchange descentralizado da BazariChain",
+    "stats": {
+      "tvl": "TVL Total",
+      "volume24h": "Volume 24h",
+      "activePools": "Pools Ativos",
+      "feesCollected": "Taxas Coletadas"
+    },
+    "swap": {
+      "title": "Swap de Tokens",
+      "youPay": "Você paga",
+      "youReceive": "Você recebe",
+      "rate": "Taxa de câmbio",
+      "priceImpact": "Impacto no preço",
+      "slippage": "Slippage",
+      "fee": "Taxa",
+      "minimumReceived": "Mínimo recebido",
+      "execute": "Fazer Swap"
+    },
+    "pool": {
+      "title": "Pool de Liquidez",
+      "create": "Criar Pool",
+      "addLiquidity": "Adicionar Liquidez",
+      "removeLiquidity": "Remover Liquidez",
+      "tvl": "TVL",
+      "apr": "APR", 
+      "volume": "Volume",
+      "reserves": "Reservas",
+      "share": "Share",
+      "lpTokens": "LP Tokens"
+    },
+    "liquidity": {
+      "add": "Adicionar Liquidez",
+      "remove": "Remover Liquidez",
+      "position": "Sua Posição",
+      "share": "Share do Pool",
+      "received": "Você receberá",
+      "proportional": "Proporcionalmente"
+    },
+    "rewards": {
+      "title": "Recompensas",
+      "pending": "Pendentes",
+      "claimed": "Recebidas",
+      "total": "Total",
+      "claim": "Claim",
+      "claimAll": "Claim Todas",
+      "lastClaim": "Último claim",
+      "distribution": "Distribuição"
+    },
+    "tokens": {
+      "bzr": "Bazari Token",
+      "zari": "Bazari Governance",
+      "native": "Token Nativo",
+      "lp": "LP Token"
+    }
   }
+  
 
 }
