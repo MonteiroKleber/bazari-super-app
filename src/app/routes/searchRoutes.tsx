@@ -1,6 +1,7 @@
 // src/app/routes/searchRoutes.tsx
 import { lazy, Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import { AuthGuard } from '@shared/guards/AuthGuard'
 
 // 👇 lazy import da página já existente
 const SearchUsersPage = lazy(() =>
@@ -21,12 +22,14 @@ export const searchRoutes: RouteObject[] = [
     path: '/search',
     children: [
       {
-        path: 'users',
-        element: (
-          <Suspense fallback={<RouteLoader />}>
-            <SearchUsersPage />
-          </Suspense>
-        ),
+        index: true,
+              element: (
+                <AuthGuard>
+                  <Suspense fallback={<RouteLoader />}>
+                    <SearchUsersPage />
+                  </Suspense>
+                </AuthGuard>
+              )
       },
     ],
   },

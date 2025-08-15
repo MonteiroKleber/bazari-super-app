@@ -7,10 +7,12 @@ import { authRoutes } from './authRoutes'
 import { profileRoutes } from './profileRoutes'
 import { marketplaceRoutes } from './marketplaceRoutes'
 import { searchRoutes } from './searchRoutes'
-import { walletRoutes } from './walletRoutes'  // ✅ NOVA IMPORT DA WALLET
+import { walletRoutes } from './walletRoutes'  
 import { socialRoutes } from './socialRoutes'
-import { daoRoutes } from './daoRoutes'      // ✅ NOVA IMPORT DAO
-import { dexRoutes } from './dexRoutes'      // ✅ NOVA IMPORT DEX
+import { daoRoutes } from './daoRoutes'      
+import { dexRoutes } from './dexRoutes'      
+import { workRoutes } from './workRoutes'
+import dashboardRoutes from "./dashboardRoutes";
 
 // Páginas principais
 const HomePage = lazy(() => import('@pages/Home').then(m => ({ default: m.default })))
@@ -40,7 +42,7 @@ export const router = createBrowserRouter([
           </Suspense>
         )
       },
-      {
+      /*{
         path: 'dashboard',
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -49,10 +51,14 @@ export const router = createBrowserRouter([
             </AuthGuard>
           </Suspense>
         )
-      },
+      },*/
       
       // Rotas de autenticação
       ...authRoutes,
+
+      // Rotas de dashboard
+      ...dashboardRoutes,
+
       
       // Rotas de perfil  
       ...profileRoutes,
@@ -76,7 +82,7 @@ export const router = createBrowserRouter([
       ...dexRoutes,         
 
       
-      // ...workRoutes,        // ETAPA 9
+       ...workRoutes,        // ETAPA 9
 
       // Página 404
       {

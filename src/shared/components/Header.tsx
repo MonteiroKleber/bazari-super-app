@@ -3,6 +3,9 @@ import { FC, startTransition } from 'react'
 import { Link} from 'react-router-dom'
 import { useAuth } from '@features/auth/hooks/useAuth'
 import { useProfile } from '@features/profile/hooks/useProfile'
+import BackButton from "../components/BackButton";
+import Breadcrumbs from "../components/Breadcrumbs";
+
 
 export const Header: FC = () => {
   const { isAuthenticated, currentAccount, logout } = useAuth()
@@ -31,9 +34,13 @@ export const Header: FC = () => {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+
+
+
+    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <BackButton />
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -41,19 +48,12 @@ export const Header: FC = () => {
             </div>
             <span className="text-xl font-bold text-gray-900">Bazari</span>
           </Link>
+          <Link to="/dashboard" className="rounded-md px-2 py-1 text-sm font-medium hover:bg-accent">
+            Dashboard
+          </Link>
+        </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/marketplace" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Marketplace
-            </Link>
-            <Link to="/search/users" className="text-gray-700 hover:text-primary-600 transition-colors">
-              Usuários
-            </Link>
-            <Link to="/dao" className="text-gray-700 hover:text-primary-600 transition-colors">
-              DAO
-            </Link>
-          </nav>
+       
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
@@ -123,8 +123,12 @@ export const Header: FC = () => {
               </div>
             )}
           </div>
-        </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 pb-3">
+        <Breadcrumbs />
       </div>
     </header>
+   
   )
 }
