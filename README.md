@@ -389,11 +389,9 @@ perf: melhorias de performance   # Otimizações
 
 ## 📞 Suporte e Comunidade
 
-- 📧 **Email:** contato@bazari.com.br
-- 💬 **Discord:** [Comunidade Bazari](https://discord.gg/bazari)
-- 🐦 **Twitter:** [@BazariApp](https://twitter.com/BazariApp)
-- 📖 **Documentação:** [docs.bazari.com.br](https://docs.bazari.com.br)
-- 🐛 **Issues:** [GitHub Issues](https://github.com/seu-usuario/bazari-super-app/issues)
+- 📧 **Email:** contact@libervia.xyx
+- 💬 **site:** [Comunidade Bazari](https://libervia.xyz)
+
 
 ## 📄 Licença
 
